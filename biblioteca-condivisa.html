@@ -629,11 +629,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged
+  signOut, onAuthStateChanged, EmailAuthProvider, reauthenticateWithCredential, deleteUser
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, doc, setDoc, getDoc, deleteDoc, collection, collectionGroup,
-  query, where, getDocs
+  query, where, getDocs, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -748,6 +748,18 @@ async function loginUser(username, password) {
   return signInWithEmailAndPassword(auth, usernameToEmail(username), password);
 }
 async function logoutUser() { return signOut(auth); }
+async function deleteMyAccount(password) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Non sei loggato.");
+  const cred = EmailAuthProvider.credential(user.email, password);
+  await reauthenticateWithCredential(user, cred); // verifica la password prima di procedere
+  const snap = await getDocs(collection(db, "users", user.uid, "books"));
+  const batch = writeBatch(db);
+  snap.forEach(d => batch.delete(d.ref));
+  batch.delete(doc(db, "users", user.uid));
+  await batch.commit();
+  await deleteUser(user);
+}
 async function getMyProfile() {
   const user = auth.currentUser;
   if (!user) return null;
@@ -758,7 +770,7 @@ async function getMyProfile() {
 }
 
 window.FB = {
-  registerUser, loginUser, logoutUser, getMyProfile,
+  registerUser, loginUser, logoutUser, getMyProfile, deleteMyAccount,
   syncBooksDelta, loadUserBooksOnce, saveGoals: saveGoalsRemote, loadGoalsOnce,
   loadCommunityReading
 };
@@ -813,6 +825,7 @@ onAuthStateChanged(auth, (user) => {
     <div>
       <div class="user-name" id="userDisplayName">Tu</div>
       <button class="logout-btn" id="logoutBtn">Esci</button>
+      <button class="logout-btn" id="deleteAccountBtn" style="color:var(--danger); margin-left:8px;">Elimina account</button>
     </div>
   </div>
   <button class="theme-toggle-btn" id="themeToggleBtn" title="Cambia tema chiaro/scuro">🌙 Scuro</button>
@@ -4401,6 +4414,24 @@ onAuthStateChanged(auth, (user) => {
     if (window.FB && confirm("Vuoi uscire dal tuo account?")) {
       await window.FB.logoutUser();
       location.reload();
+    }
+  });
+  document.getElementById("deleteAccountBtn").addEventListener("click", async () => {
+    if (!window.FB) return;
+    const sure = confirm(
+      "Eliminare definitivamente il tuo account?\n" +
+      "Tutti i libri salvati nel cloud con questo account verranno cancellati e non potranno essere recuperati.\n" +
+      "Il catalogo salvato su questo dispositivo (localStorage) non viene toccato."
+    );
+    if (!sure) return;
+    const password = prompt("Per confermare, inserisci la tua password:");
+    if (!password) return;
+    try {
+      await window.FB.deleteMyAccount(password);
+      alert("Account eliminato.");
+      location.reload();
+    } catch (err) {
+      alert("Non sono riuscito a eliminare l'account: " + friendlyAuthError(err));
     }
   });
 
