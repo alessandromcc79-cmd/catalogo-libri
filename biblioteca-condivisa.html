@@ -3250,8 +3250,11 @@ onAuthStateChanged(auth, (user) => {
     return doc && doc.cover_i ? ("https://covers.openlibrary.org/b/id/" + doc.cover_i + "-L.jpg") : "";
   }
 
-  async function googleBooksLookup(query) {
-    const res = await fetch("https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent(query) + "&maxResults=6");
+  async function googleBooksLookup(query, opts) {
+    opts = opts || {};
+    let url = "https://www.googleapis.com/books/v1/volumes?q=" + encodeURIComponent(query) + "&maxResults=" + (opts.maxResults || 6);
+    if (opts.langRestrict) url += "&langRestrict=" + opts.langRestrict;
+    const res = await fetch(url);
     const data = await res.json();
     return (data.items || []).map(item => {
       const v = item.volumeInfo || {};
@@ -3263,7 +3266,10 @@ onAuthStateChanged(auth, (user) => {
         genre: guessGenreFromSubjects(v.categories),
         cover: img.replace(/^http:/, "https:")
       };
-    }).filter(r => r.cover);
+    });
+    // Nota: non scartiamo più qui i risultati senza copertina (v. filtro locale nei
+    // punti in cui serve solo la copertina) — così i dati testuali (autore, anno,
+    // genere, pagine) restano utilizzabili anche quando manca l'immagine.
   }
 
   document.getElementById("searchCoverBtn").addEventListener("click", async () => {
@@ -3274,7 +3280,15 @@ onAuthStateChanged(auth, (user) => {
     candidatesEl.innerHTML = '<span style="font-size:0.78rem;color:var(--muted);">Ricerca in corso...</span>';
     const cleanedTitle = cleanTitleForSearch(title);
     let results = [];
-    try { results = await openLibraryCandidates(title, author, 6); } catch (e) { /* ignore */ }
+    // 1) Google Books con priorità alle edizioni italiane: spesso ha copertine più
+    //    recenti/corrette per libri ed edizioni italiane rispetto a Open Library.
+    try {
+      const q = author ? "intitle:" + cleanedTitle + "+inauthor:" + author : cleanedTitle;
+      results = (await googleBooksLookup(q, { langRestrict: "it", maxResults: 8 })).filter(r => r.cover);
+    } catch (e) { /* ignore */ }
+    if (!results.length) {
+      try { results = await openLibraryCandidates(title, author, 6); } catch (e) { /* ignore */ }
+    }
     if (!results.length && cleanedTitle !== title) {
       try { results = await openLibraryCandidates(cleanedTitle, author, 6); } catch (e) { /* ignore */ }
     }
@@ -3285,7 +3299,10 @@ onAuthStateChanged(auth, (user) => {
       } catch (e) { /* ignore */ }
     }
     if (!results.length) {
-      try { results = await googleBooksLookup((author ? "intitle:" + cleanedTitle + "+inauthor:" + author : cleanedTitle)); } catch (e) { /* ignore */ }
+      try {
+        const q = author ? "intitle:" + cleanedTitle + "+inauthor:" + author : cleanedTitle;
+        results = (await googleBooksLookup(q)).filter(r => r.cover);
+      } catch (e) { /* ignore */ }
     }
     if (!results.length) {
       try {
@@ -3497,7 +3514,26 @@ onAuthStateChanged(auth, (user) => {
     try { resolvedTitle = await resolveCanonicalTitleViaWikidata(cleaned || title); } catch (e) { /* ignore */ }
     if (resolvedTitle && normalizeForCompare(resolvedTitle) === normalizeForCompare(cleaned || title)) resolvedTitle = null;
 
-    // 1) Open Library: ricerca a testo libero (q=), non sul solo campo "titolo".
+    // 1) Google Books con priorità alle edizioni italiane: di solito più aggiornato e
+    //    completo di Open Library su libri/edizioni italiane, e spesso trova anche
+    //    uscite recenti che Open Library non ha ancora indicizzato.
+    for (const t of [title, cleaned, resolvedTitle].filter((v, i, a) => v && a.indexOf(v) === i)) {
+      try {
+        const q = author ? "intitle:" + t + "+inauthor:" + author : "intitle:" + t;
+        const results = await googleBooksLookup(q, { langRestrict: "it", maxResults: 8 });
+        results.forEach(r => {
+          if (titlesLikelyMatchAny(title, resolvedTitle, r.title || "") || author) {
+            addCandidate({
+              title: r.title, author: r.author, year: r.year, genre: r.genre,
+              pages: null, cover: r.cover, source: "Google Books"
+            });
+          }
+        });
+      } catch (e) { /* ignore */ }
+      if (candidates.length >= maxResults) break;
+    }
+
+    // 2) Open Library: ricerca a testo libero (q=), non sul solo campo "titolo".
     //    Il campo "titolo" di Open Library è indicizzato quasi solo sul titolo originale
     //    (in genere in inglese): per titoli tradotti (es. "Harry Potter e la pietra
     //    filosofale") non trova nulla. La ricerca a testo libero indicizza anche le
@@ -3523,7 +3559,7 @@ onAuthStateChanged(auth, (user) => {
         });
       } catch (e) { /* ignore */ }
     }
-    // 2) Open Library cercando per autore: utile quando il titolo esatto non combacia
+    // 3) Open Library cercando per autore: utile quando il titolo esatto non combacia
     //    (edizioni, sottotitoli o traduzioni diverse da come è scritto qui)
     if (candidates.length < maxResults && author) {
       try {
@@ -3534,12 +3570,13 @@ onAuthStateChanged(auth, (user) => {
         }));
       } catch (e) { /* ignore */ }
     }
-    // 3) Google Books, altra fonte per aggiungere varietà (traduzioni/edizioni diverse)
+    // 4) Google Books senza filtro lingua, per allargare la rete (traduzioni/edizioni
+    //    diverse dall'italiano, utile per opere straniere non ancora tradotte)
     if (candidates.length < maxResults) {
       try {
         const gTitle = resolvedTitle || cleaned;
         const q = author ? "intitle:" + gTitle + "+inauthor:" + author : "intitle:" + gTitle;
-        const results = await googleBooksLookup(q);
+        const results = await googleBooksLookup(q, { maxResults: 6 });
         results.forEach(r => {
           if (titlesLikelyMatchAny(title, resolvedTitle, r.title || "") || author) {
             addCandidate({
@@ -3550,7 +3587,7 @@ onAuthStateChanged(auth, (user) => {
         });
       } catch (e) { /* ignore */ }
     }
-    // 4) Wikipedia, come opzione aggiuntiva se offre una copertina non ancora presente
+    // 5) Wikipedia, come opzione aggiuntiva se offre una copertina non ancora presente
     if (candidates.length < maxResults) {
       try {
         const wiki = await findOnWikipedia(cleaned, author);
@@ -3605,6 +3642,21 @@ onAuthStateChanged(auth, (user) => {
           });
         });
         if (out.length >= 6) break;
+      }
+      // Se Open Library non basta, integra con Google Books (priorità italiano): utile
+      // soprattutto per novità recenti o edizioni italiane che Open Library non ha ancora.
+      if (out.length < 6) {
+        try {
+          const gResults = await googleBooksLookup(q, { langRestrict: "it", maxResults: 8 });
+          if (seq !== titleSuggestSeq) return [];
+          gResults.forEach(r => {
+            if (!r.title) return;
+            const key = candidateKey({ title: r.title, author: r.author });
+            if (seen.has(key)) return;
+            seen.add(key);
+            out.push({ title: r.title, author: r.author, year: r.year, cover: r.cover });
+          });
+        } catch (e) { /* ignore */ }
       }
       return out.slice(0, 6);
     } catch (e) { return []; }
