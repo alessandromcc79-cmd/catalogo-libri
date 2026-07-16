@@ -134,6 +134,24 @@
   }
   .tab-btn:hover { background: var(--hover-bg); }
   .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tab-more-wrap { position: relative; display: inline-block; }
+  .tab-more-btn {
+    padding: 8px 16px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--card-bg); color: var(--ink); font-size: 0.85rem; cursor: pointer;
+  }
+  .tab-more-btn:hover { background: var(--hover-bg); }
+  .tab-more-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tab-more-menu {
+    position: absolute; top: 100%; left: 0; margin-top: 6px; z-index: 40;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); min-width: 200px; overflow: hidden;
+  }
+  .tab-more-item {
+    display: block; width: 100%; text-align: left; padding: 9px 14px; font-size: 0.85rem;
+    background: none; border: none; color: var(--ink); cursor: pointer;
+  }
+  .tab-more-item:hover { background: var(--hover-bg); }
+  .tab-more-item.active { background: var(--accent); color: #fff; }
 
   .toolbar {
     display: flex;
@@ -496,6 +514,32 @@
   .review-author { font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
   .review-text { font-size: 0.85rem; line-height: 1.55; margin-top: 8px; white-space: pre-wrap; }
   .stars-display { font-size: 0.95rem; letter-spacing: 1px; }
+  .quote-item {
+    border-left: 3px solid var(--accent); padding: 8px 12px; margin-bottom: 8px;
+    background: var(--placeholder-bg); border-radius: 0 8px 8px 0; font-size: 0.85rem;
+    line-height: 1.5; display: flex; gap: 10px; align-items: flex-start; white-space: pre-wrap;
+  }
+  .quote-item .quote-text { flex: 1; min-width: 0; }
+  .quote-item .quote-page { font-size: 0.72rem; color: var(--muted); margin-top: 4px; white-space: nowrap; }
+  .quote-item button { flex-shrink: 0; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.9rem; }
+  .quote-item button:hover { color: var(--danger); }
+  .quote-card {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 14px;
+  }
+  .quote-card-book { font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; cursor: pointer; }
+  .quote-card-book:hover { text-decoration: underline; }
+  .cal-wrap { overflow-x: auto; padding-bottom: 8px; }
+  .cal-months { display: grid; grid-auto-flow: column; grid-auto-columns: 13px; gap: 3px; font-size: 0.62rem; color: var(--muted); margin-bottom: 4px; margin-left: 22px; white-space: nowrap; }
+  .cal-body { display: flex; gap: 6px; }
+  .cal-daylabels { display: grid; grid-template-rows: repeat(7, 13px); gap: 3px; font-size: 0.62rem; color: var(--muted); flex-shrink: 0; }
+  .cal-grid { display: grid; grid-auto-flow: column; grid-auto-columns: 13px; grid-template-rows: repeat(7, 13px); gap: 3px; }
+  .cal-cell { width: 13px; height: 13px; border-radius: 3px; background: var(--placeholder-bg); }
+  .cal-cell.active { background: var(--accent); }
+  .cal-cell.empty { background: transparent; }
+  .cal-summary { display: flex; gap: 24px; margin-top: 18px; flex-wrap: wrap; }
+  .cal-summary-item { font-size: 0.85rem; }
+  .cal-summary-item strong { display: block; font-size: 1.4rem; color: var(--accent); }
   .suggest-dropdown {
     position: absolute; top: 100%; left: 0; right: 0; z-index: 30;
     background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
@@ -544,13 +588,21 @@
     <button class="tab-btn" data-tab="da_leggere">Da leggere</button>
     <button class="tab-btn" data-tab="in_lettura">In lettura</button>
     <button class="tab-btn" data-tab="letto">Letti</button>
-    <button class="tab-btn" data-tab="storico">📅 Storico annuale</button>
     <button class="tab-btn" data-tab="statistiche">📊 Statistiche</button>
-    <button class="tab-btn" data-tab="scaffale">📚 Scaffale</button>
-    <button class="tab-btn" data-tab="serie">📖 Serie</button>
-    <button class="tab-btn" data-tab="recensioni">✍️ Recensioni</button>
     <button class="tab-btn" data-tab="esplora">🔎 Esplora</button>
-    <button class="tab-btn" data-tab="gestione">🛠️ Gestione</button>
+    <div class="tab-more-wrap">
+      <button type="button" class="tab-more-btn" id="tabMoreBtn">Altro ▾</button>
+      <div class="tab-more-menu" id="tabMoreMenu" style="display:none;">
+        <button type="button" class="tab-more-item" data-tab="storico">📅 Storico annuale</button>
+        <button type="button" class="tab-more-item" data-tab="calendario">📅 Calendario</button>
+        <button type="button" class="tab-more-item" data-tab="scaffale">📚 Scaffale</button>
+        <button type="button" class="tab-more-item" data-tab="serie">📖 Serie</button>
+        <button type="button" class="tab-more-item" data-tab="recensioni">✍️ Recensioni</button>
+        <button type="button" class="tab-more-item" data-tab="citazioni">💬 Citazioni</button>
+        <button type="button" class="tab-more-item" data-tab="desideri">🎁 Lista desideri</button>
+        <button type="button" class="tab-more-item" data-tab="gestione">🛠️ Gestione</button>
+      </div>
+    </div>
   </div>
 
   <div class="toolbar" id="toolbar">
@@ -567,9 +619,11 @@
       <option value="progress_desc">Letto di più → Letto meno</option>
     </select>
     <div class="spacer"></div>
+    <button class="btn secondary" id="randomPickBtn" title="Pesca un libro a caso da 'Da leggere'">🎲 Cosa leggo dopo?</button>
     <button class="btn secondary" id="importBtn">Importa da Goodreads</button>
     <button class="btn secondary" id="syncBtn" title="Cerca online copertine, trame e generi mancanti per tutti i libri">🔄 Sincronizza libri</button>
     <button class="btn secondary" id="backupBtn">Backup</button>
+    <button class="btn secondary" id="localFileBtn" title="Collega un file sul disco per salvare automaticamente ad ogni modifica (richiede Chrome o Edge)">🔗 Salvataggio file</button>
     <button class="btn danger" id="clearAllBtn">Svuota libreria</button>
     <button class="btn" id="addBtn">+ Aggiungi libro</button>
   </div>
@@ -580,10 +634,13 @@
   </div>
   <div id="storicoView" style="display:none;"></div>
   <div id="statisticheView" style="display:none;"></div>
+  <div id="calendarioView" style="display:none;"></div>
   <div id="scaffaleView" style="display:none;"></div>
   <div id="serieView" style="display:none;"></div>
   <div id="recensioniView" style="display:none;"></div>
+  <div id="citazioniView" style="display:none;"></div>
   <div id="esploraView" style="display:none;"></div>
+  <div id="desideriView" style="display:none;"></div>
   <div id="gestioneView" style="display:none;"></div>
 </main>
 
@@ -754,6 +811,21 @@
       <p id="detailReview"></p>
     </div>
     <div class="detail-section">
+      <h4>Citazioni</h4>
+      <div id="detailQuotesList"></div>
+      <div class="form-grid" style="margin-top:10px;">
+        <div class="full">
+          <label>Nuova citazione</label>
+          <textarea id="detailQuoteText" placeholder="Copia qui il passaggio che vuoi salvare..."></textarea>
+        </div>
+        <div>
+          <label>Pagina (facoltativo)</label>
+          <input type="number" id="detailQuotePage" min="0">
+        </div>
+      </div>
+      <button class="btn secondary" type="button" id="addQuoteBtn" style="margin-top:8px;">Salva citazione</button>
+    </div>
+    <div class="detail-section">
       <h4>Libri simili</h4>
       <div id="similarFromLibrary" class="mini-grid"></div>
       <button class="btn secondary" type="button" id="discoverSimilarBtn" style="margin-top:10px;">🔎 Scopri altri libri simili online</button>
@@ -808,6 +880,7 @@
     </div>
     <div class="modal-actions">
       <button class="btn secondary" type="button" id="candidateCancelBtn">Annulla</button>
+      <button class="btn secondary" type="button" id="candidateWishlistBtn">🎁 Lista desideri</button>
       <button class="btn" type="button" id="candidateAddBtn">Aggiungi alla libreria</button>
     </div>
   </div>
@@ -832,6 +905,19 @@
     <div class="modal-actions">
       <button class="btn secondary" id="qrSkipBtn">Salta per ora</button>
       <button class="btn" id="qrSaveBtn">Salva recensione</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Cosa leggo dopo? (libro casuale da "Da leggere") -->
+<div class="overlay" id="randomPickOverlay">
+  <div class="modal" style="max-width:440px;">
+    <h2 style="margin-top:0;">Cosa leggo dopo?</h2>
+    <div id="randomPickContent"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="randomPickCloseBtn">Chiudi</button>
+      <button class="btn secondary" id="randomPickAgainBtn">🎲 Un altro</button>
+      <button class="btn" id="randomPickStartBtn">📖 Inizia questo</button>
     </div>
   </div>
 </div>
@@ -915,9 +1001,13 @@
   const STORAGE_BOOKS = "catalogoLibri_books_v1";
   const STORAGE_GOALS = "catalogoLibri_goals_v1";
   const STORAGE_THEME = "catalogoLibri_theme_v1";
+  const STORAGE_WISHLIST = "catalogoLibri_wishlist_v1";
+  const STORAGE_ACTIVITY = "catalogoLibri_activity_v1";
 
   let books = loadBooks();
   let goals = loadGoals();
+  let wishlist = loadWishlist();
+  let activityLog = loadActivity();
   let editingId = null;
   let currentRatingInput = 0;
   let currentTab = "all";
@@ -944,6 +1034,7 @@
   }
   function saveBooks() {
     localStorage.setItem(STORAGE_BOOKS, JSON.stringify(books));
+    writeToLocalFile();
   }
   function loadGoals() {
     try {
@@ -952,10 +1043,184 @@
   }
   function saveGoals() {
     localStorage.setItem(STORAGE_GOALS, JSON.stringify(goals));
+    writeToLocalFile();
+  }
+  function loadWishlist() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_WISHLIST)) || [];
+    } catch (e) { return []; }
+  }
+  function saveWishlist() {
+    localStorage.setItem(STORAGE_WISHLIST, JSON.stringify(wishlist));
+  }
+  // ---------- Log leggero di attività (per il calendario delle letture) ----------
+  // Registra solo la data (una volta per giorno, deduplicato) in cui è stato cambiato
+  // uno stato o un progresso di lettura: non un log dettagliato, solo "quel giorno ho
+  // fatto qualcosa di legato alla lettura", utile per la heatmap.
+  function loadActivity() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_ACTIVITY)) || [];
+    } catch (e) { return []; }
+  }
+  function saveActivity() {
+    localStorage.setItem(STORAGE_ACTIVITY, JSON.stringify(activityLog));
+  }
+  function recordActivity() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (!activityLog.includes(today)) {
+      activityLog.push(today);
+      saveActivity();
+    }
   }
   function uid() {
     return "b_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
   }
+
+  // ---------- Salvataggio automatico su file locale (File System Access API) ----------
+  // Disponibile solo su Chrome/Edge (browser basati su Chromium): permette di collegare
+  // un file reale sul disco e scriverci automaticamente ad ogni modifica, come rete di
+  // sicurezza aggiuntiva rispetto al solo localStorage. L'handle del file viene salvato
+  // in IndexedDB per ritrovarlo automaticamente ai riavvii della pagina (i permessi
+  // però possono comunque richiedere una riconferma da parte del browser).
+  let localFileHandle = null;
+  function idbOpen() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open("catalogoLibriDB", 1);
+      req.onupgradeneeded = () => { req.result.createObjectStore("handles"); };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbGetHandle() {
+    try {
+      const db = await idbOpen();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction("handles", "readonly");
+        const req = tx.objectStore("handles").get("backupFile");
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) { return null; }
+  }
+  async function idbSetHandle(handle) {
+    try {
+      const db = await idbOpen();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction("handles", "readwrite");
+        tx.objectStore("handles").put(handle, "backupFile");
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) { /* ignore */ }
+  }
+  async function idbClearHandle() {
+    try {
+      const db = await idbOpen();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction("handles", "readwrite");
+        tx.objectStore("handles").delete("backupFile");
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) { /* ignore */ }
+  }
+  function updateLocalFileBtn(label) {
+    const btn = document.getElementById("localFileBtn");
+    if (label) {
+      btn.textContent = "🔗 " + label;
+      btn.title = "Salvataggio automatico su file collegato. Clicca per scollegare.";
+    } else {
+      btn.textContent = "🔗 Salvataggio file";
+      btn.title = "Collega un file sul disco per salvare automaticamente ad ogni modifica (richiede Chrome o Edge)";
+    }
+  }
+  async function writeToLocalFile() {
+    if (!localFileHandle) return;
+    try {
+      const perm = await localFileHandle.queryPermission({ mode: "readwrite" });
+      if (perm !== "granted") return; // servirà un click per riconfermare l'accesso
+      const writable = await localFileHandle.createWritable();
+      await writable.write(JSON.stringify({ books, goals }, null, 2));
+      await writable.close();
+    } catch (e) { /* il file potrebbe essere stato spostato o eliminato: ignora silenziosamente */ }
+  }
+  async function tryReconnectLocalFile() {
+    if (!("showSaveFilePicker" in window)) return;
+    const handle = await idbGetHandle();
+    if (!handle) return;
+    try {
+      const perm = await handle.queryPermission({ mode: "readwrite" });
+      localFileHandle = handle;
+      updateLocalFileBtn(perm === "granted" ? handle.name : handle.name + " (clicca per confermare l'accesso)");
+    } catch (e) { /* handle non più valido (es. file cancellato) */ }
+  }
+  document.getElementById("localFileBtn").addEventListener("click", async () => {
+    if (!("showSaveFilePicker" in window)) {
+      alert('Il salvataggio automatico su file richiede Chrome o Edge su computer (questa funzione del browser non è supportata da Safari o Firefox). Usa comunque il pulsante "Backup" per esportare/importare manualmente.');
+      return;
+    }
+    if (localFileHandle) {
+      try {
+        const perm = await localFileHandle.queryPermission({ mode: "readwrite" });
+        if (perm !== "granted") {
+          const granted = await localFileHandle.requestPermission({ mode: "readwrite" });
+          if (granted === "granted") {
+            updateLocalFileBtn(localFileHandle.name);
+            await writeToLocalFile();
+            alert('Accesso confermato. Salvataggio automatico attivo su "' + localFileHandle.name + '".');
+          }
+          return;
+        }
+      } catch (e) { /* ignore */ }
+      if (confirm('Salvataggio automatico attivo su "' + localFileHandle.name + '". Vuoi scollegarlo?')) {
+        localFileHandle = null;
+        await idbClearHandle();
+        updateLocalFileBtn(null);
+      }
+      return;
+    }
+    const createNew = confirm('OK = crea un nuovo file per il salvataggio automatico.\nAnnulla = collega un file di backup .json già esistente.');
+    try {
+      let handle;
+      if (createNew) {
+        handle = await window.showSaveFilePicker({
+          suggestedName: "biblioteca.json",
+          types: [{ description: "File JSON", accept: { "application/json": [".json"] } }]
+        });
+      } else {
+        const picked = await window.showOpenFilePicker({
+          types: [{ description: "File JSON", accept: { "application/json": [".json"] } }]
+        });
+        handle = picked[0];
+      }
+      const perm = await handle.requestPermission({ mode: "readwrite" });
+      if (perm !== "granted") { alert("Permesso non concesso: il salvataggio automatico resta disattivato."); return; }
+      try {
+        const file = await handle.getFile();
+        const text = await file.text();
+        if (text && text.trim()) {
+          const data = JSON.parse(text);
+          if (data && (data.books || data.goals)) {
+            const importIt = confirm("Il file scelto contiene già una libreria salvata.\nOK = importa questi dati (sostituisce quello che vedi ora).\nAnnulla = mantieni la libreria attuale e sovrascrivi il file con questa.");
+            if (importIt) {
+              if (data.books) books = data.books;
+              if (data.goals) goals = data.goals;
+              localStorage.setItem(STORAGE_BOOKS, JSON.stringify(books));
+              localStorage.setItem(STORAGE_GOALS, JSON.stringify(goals));
+              renderAll();
+            }
+          }
+        }
+      } catch (e) { /* file vuoto o non leggibile come JSON: si procede a sovrascriverlo */ }
+      localFileHandle = handle;
+      await idbSetHandle(handle);
+      updateLocalFileBtn(handle.name);
+      await writeToLocalFile();
+      alert('Salvataggio automatico attivo su "' + handle.name + '". Da ora ogni modifica viene scritta anche lì, oltre che nel browser.');
+    } catch (e) {
+      if (e && e.name !== "AbortError") alert("Non sono riuscito a collegare il file.");
+    }
+  });
 
   // ---------- Rendering ----------
   function renderGoal() {
@@ -1069,6 +1334,9 @@
     else if (currentTab === "serie") renderSerie();
     else if (currentTab === "recensioni") renderRecensioni();
     else if (currentTab === "esplora") renderEsplora();
+    else if (currentTab === "calendario") renderCalendario();
+    else if (currentTab === "citazioni") renderCitazioni();
+    else if (currentTab === "desideri") renderDesideri();
     else renderGrid();
   }
   function renderCurrentListView() {
@@ -1180,6 +1448,91 @@
   }
 
   // ---------- Storico per anno ----------
+  // ---------- Calendario delle letture (heatmap stile GitHub) ----------
+  // Basato sul log leggero di attività (activityLog): un giorno risulta "attivo" se
+  // quel giorno è stato cambiato uno stato o un progresso di lettura. Non copre
+  // l'attività prima dell'introduzione di questa funzione: parte da qui in avanti.
+  const MONTHS_IT = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
+  let calendarioSelectedYear = null;
+  function renderCalendario() {
+    const container = document.getElementById("calendarioView");
+    const activitySet = new Set(activityLog);
+    const yearsWithActivity = new Set(activityLog.map(d => parseInt(d.slice(0, 4), 10)));
+    yearsWithActivity.add(new Date().getFullYear());
+    const years = [...yearsWithActivity].sort((a, b) => b - a);
+    if (!calendarioSelectedYear || !years.includes(calendarioSelectedYear)) calendarioSelectedYear = years[0];
+    const year = calendarioSelectedYear;
+
+    const start = new Date(year, 0, 1);
+    const end = new Date(year, 11, 31);
+    const startWeekday = (start.getDay() + 6) % 7; // 0 = lunedì
+    const gridStart = new Date(start);
+    gridStart.setDate(start.getDate() - startWeekday);
+
+    const days = [];
+    const cursor = new Date(gridStart);
+    while (cursor <= end) {
+      days.push(new Date(cursor));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    while (days.length % 7 !== 0) {
+      days.push(new Date(cursor));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    let cellsHtml = "";
+    let monthsHtml = "";
+    let lastMonth = -1;
+    let activeDaysInYear = 0;
+    const activeDatesInYear = [];
+    for (let i = 0; i < days.length; i++) {
+      const d = days[i];
+      const inYear = d.getFullYear() === year;
+      const iso = d.toISOString().slice(0, 10);
+      const active = inYear && activitySet.has(iso);
+      if (active) { activeDaysInYear++; activeDatesInYear.push(iso); }
+      cellsHtml += '<div class="cal-cell' + (!inYear ? " empty" : active ? " active" : "") + '" title="' + iso + (active ? " · lettura registrata" : "") + '"></div>';
+      if (i % 7 === 0) {
+        monthsHtml += (d.getMonth() !== lastMonth && inYear) ? '<div>' + MONTHS_IT[d.getMonth()] + '</div>' : '<div></div>';
+        if (inYear) lastMonth = d.getMonth();
+      }
+    }
+
+    // striscia più lunga di giorni consecutivi con attività, nell'anno selezionato
+    activeDatesInYear.sort();
+    let longestStreak = 0, currentStreak = 0, prevDate = null;
+    activeDatesInYear.forEach(iso => {
+      const d = new Date(iso + "T00:00:00Z");
+      if (prevDate && (d - prevDate) === 86400000) currentStreak++;
+      else currentStreak = 1;
+      longestStreak = Math.max(longestStreak, currentStreak);
+      prevDate = d;
+    });
+
+    const yearOptionsHtml = years.map(y => '<option value="' + y + '"' + (y === year ? " selected" : "") + '>' + y + "</option>").join("");
+    container.innerHTML =
+      '<div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">' +
+        '<h3 style="margin:0;">Calendario delle letture</h3>' +
+        '<select id="calendarioYearSelect">' + yearOptionsHtml + '</select>' +
+      '</div>' +
+      '<div class="cal-wrap">' +
+        '<div class="cal-months">' + monthsHtml + '</div>' +
+        '<div class="cal-body">' +
+          '<div class="cal-daylabels"><div>Lun</div><div></div><div>Mer</div><div></div><div>Ven</div><div></div><div>Dom</div></div>' +
+          '<div class="cal-grid">' + cellsHtml + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cal-summary">' +
+        '<div class="cal-summary-item"><strong>' + activeDaysInYear + '</strong>giorni con attività nel ' + year + '</div>' +
+        '<div class="cal-summary-item"><strong>' + longestStreak + '</strong>striscia più lunga (giorni consecutivi)</div>' +
+      '</div>' +
+      '<div style="font-size:0.72rem;color:var(--muted);margin-top:10px;">Il calendario registra da ora in poi i giorni in cui cambi stato o progresso di un libro: non copre l\'attività precedente a questa funzione.</div>';
+    document.getElementById("calendarioYearSelect").addEventListener("change", e => {
+      calendarioSelectedYear = parseInt(e.target.value, 10);
+      renderCalendario();
+    });
+  }
+
   function renderStorico() {
     const read = books.filter(b => b.status === "letto");
     const groups = {};
@@ -1482,9 +1835,28 @@
     if (description.className !== "detail-muted") newBook.description = description.textContent || "";
     books.push(newBook);
     saveBooks();
+    if (status !== "da_leggere") recordActivity();
     closeCandidateBookSheet();
     renderAll();
     if (status === "letto") openQuickReview(newBook);
+  });
+  document.getElementById("candidateWishlistBtn").addEventListener("click", () => {
+    if (!currentCandidate) return;
+    const r = currentCandidate;
+    const description = document.getElementById("candidateDescription");
+    wishlist.push({
+      id: uid(),
+      title: r.title || "",
+      author: r.author || "",
+      year: r.year || null,
+      genre: r.genre || "",
+      cover: r.cover || "",
+      description: description.className !== "detail-muted" ? (description.textContent || "") : "",
+      dateAdded: new Date().toISOString().slice(0, 10)
+    });
+    saveWishlist();
+    closeCandidateBookSheet();
+    renderAll();
   });
   // Disegna una griglia di risultati (usata sia per la ricerca manuale sia per i
   // consigli di lettura automatici) con un titoletto opzionale sopra. Cliccando sulla
@@ -1681,10 +2053,173 @@
     document.getElementById("fetchDescBtn").style.display = book.description ? "none" : "inline-block";
     document.getElementById("detailStatusSelect").value = book.status;
     document.getElementById("detailProgressWrap").innerHTML = book.status === "in_lettura" ? progressHtml(book) : "";
+    renderDetailQuotes(book);
+    document.getElementById("detailQuoteText").value = "";
+    document.getElementById("detailQuotePage").value = "";
     renderSimilarFromLibrary(book);
     document.getElementById("similarOnlineResults").innerHTML = "";
     currentSuggestions = [];
   }
+
+  // ---------- Citazioni salvate ----------
+  function renderDetailQuotes(book) {
+    const list = book.quotes || [];
+    const el = document.getElementById("detailQuotesList");
+    el.innerHTML = list.length
+      ? list.map(q =>
+          '<div class="quote-item" data-id="' + q.id + '">' +
+            '<div class="quote-text">' + escapeHtml(q.text) +
+              (q.page ? '<div class="quote-page">p. ' + escapeHtml(String(q.page)) + '</div>' : "") +
+            '</div>' +
+            '<button type="button" data-action="delete-quote" data-id="' + q.id + '" title="Elimina citazione">✕</button>' +
+          '</div>'
+        ).join("")
+      : '<div style="font-size:0.8rem;color:var(--muted);font-style:italic;">Nessuna citazione salvata per questo libro.</div>';
+  }
+  document.getElementById("addQuoteBtn").addEventListener("click", () => {
+    const book = books.find(b => b.id === currentDetailBookId);
+    if (!book) return;
+    const text = document.getElementById("detailQuoteText").value.trim();
+    if (!text) { alert("Scrivi il testo della citazione prima di salvarla."); return; }
+    const pageVal = parseInt(document.getElementById("detailQuotePage").value, 10);
+    if (!book.quotes) book.quotes = [];
+    book.quotes.push({
+      id: uid(),
+      text: text,
+      page: isNaN(pageVal) ? null : pageVal,
+      dateAdded: new Date().toISOString().slice(0, 10)
+    });
+    saveBooks();
+    document.getElementById("detailQuoteText").value = "";
+    document.getElementById("detailQuotePage").value = "";
+    renderDetailQuotes(book);
+  });
+  document.getElementById("detailQuotesList").addEventListener("click", e => {
+    const btn = e.target.closest("button[data-action='delete-quote']");
+    if (!btn) return;
+    const book = books.find(b => b.id === currentDetailBookId);
+    if (!book || !book.quotes) return;
+    book.quotes = book.quotes.filter(q => q.id !== btn.dataset.id);
+    saveBooks();
+    renderDetailQuotes(book);
+  });
+
+  // Tab "Citazioni": raggruppa tutte le citazioni salvate in tutti i libri.
+  function renderCitazioni() {
+    const container = document.getElementById("citazioniView");
+    const list = getFilteredSortedBooks().filter(b => b.quotes && b.quotes.length);
+    if (!list.length) {
+      container.innerHTML = '<div class="empty-state">Non hai ancora salvato nessuna citazione. Apri un libro e usa la sezione "Citazioni" per aggiungerne una.</div>';
+      return;
+    }
+    container.innerHTML = list.map(b => {
+      const quotesHtml = b.quotes.map(q =>
+        '<div class="quote-item">' +
+          '<div class="quote-text">' + escapeHtml(q.text) +
+            (q.page ? '<div class="quote-page">p. ' + escapeHtml(String(q.page)) + '</div>' : "") +
+          '</div>' +
+        '</div>'
+      ).join("");
+      return '<div class="quote-card">' +
+        '<div class="quote-card-book" data-action="detail" data-id="' + b.id + '">' +
+          escapeHtml(b.title || "Senza titolo") + (b.author ? " · " + escapeHtml(b.author) : "") +
+        '</div>' +
+        quotesHtml +
+      '</div>';
+    }).join("");
+  }
+  document.getElementById("citazioniView").addEventListener("click", e => {
+    const el = e.target.closest("[data-action='detail']");
+    if (!el) return;
+    const book = books.find(b => b.id === el.dataset.id);
+    if (book) openBookDetail(book);
+  });
+
+  // ---------- Lista desideri ----------
+  // Libri che non possiedi ancora, tenuti volutamente separati dalla libreria vera e
+  // propria (books) e da "Da leggere" (che presuppone di avere già il libro in casa).
+  function renderDesideri() {
+    const container = document.getElementById("desideriView");
+    const formHtml =
+      '<div class="isbn-box" style="margin-bottom:16px;">' +
+        '<div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">' +
+          '<div style="flex:1; min-width:180px;"><label style="font-size:0.8rem;color:var(--muted);">Titolo</label>' +
+          '<input type="text" id="desideriTitle" style="width:100%;" placeholder="Titolo del libro che vorresti"></div>' +
+          '<div style="flex:1; min-width:180px;"><label style="font-size:0.8rem;color:var(--muted);">Autore (facoltativo)</label>' +
+          '<input type="text" id="desideriAuthor" style="width:100%;"></div>' +
+          '<button type="button" class="btn" id="desideriAddBtn">Aggiungi ai desideri</button>' +
+        '</div>' +
+      '</div>';
+    const list = wishlist.slice().sort((a, b) => (b.dateAdded || "").localeCompare(a.dateAdded || ""));
+    const listHtml = list.length
+      ? '<div class="mini-grid">' + list.map(w => {
+          const coverStyle = w.cover ? ' style="background-image:url(\'' + escapeAttr(w.cover) + '\')"' : "";
+          const coverContent = w.cover ? "" : escapeHtml(w.title || "");
+          return '<div class="mini-card" data-id="' + w.id + '">' +
+            '<div class="mini-cover"' + coverStyle + '>' + coverContent + '</div>' +
+            '<div class="mini-title">' + escapeHtml(w.title || "") + '</div>' +
+            (w.author ? '<div style="font-size:0.7rem;color:var(--muted);">' + escapeHtml(w.author) + '</div>' : '') +
+            '<div style="display:flex; gap:4px; margin-top:6px;">' +
+              '<button type="button" class="btn secondary" data-action="wishlist-owned" data-id="' + w.id + '" style="flex:1;font-size:0.68rem;padding:4px 6px;">📚 Ce l\'ho</button>' +
+              '<button type="button" class="btn secondary" data-action="wishlist-remove" data-id="' + w.id + '" style="font-size:0.68rem;padding:4px 8px;">✕</button>' +
+            '</div>' +
+          '</div>';
+        }).join("") + '</div>'
+      : '<div class="empty-state">Nessun libro nella lista desideri. Aggiungine uno qui sopra, oppure usa "🎁 Lista desideri" quando trovi qualcosa di interessante in Esplora.</div>';
+    container.innerHTML = formHtml + listHtml;
+    document.getElementById("desideriAddBtn").addEventListener("click", async () => {
+      const title = document.getElementById("desideriTitle").value.trim();
+      const author = document.getElementById("desideriAuthor").value.trim();
+      if (!title) { alert("Inserisci almeno il titolo."); return; }
+      const item = {
+        id: uid(), title, author, year: null, genre: "", cover: "", description: "",
+        dateAdded: new Date().toISOString().slice(0, 10)
+      };
+      wishlist.push(item);
+      saveWishlist();
+      renderDesideri();
+      // completa copertina/anno/genere in background, senza bloccare l'aggiunta
+      try {
+        const candidates = await searchBookCandidatesByTitle(title, author, 1);
+        const match = candidates[0];
+        if (match) {
+          const w = wishlist.find(x => x.id === item.id);
+          if (w) {
+            w.cover = w.cover || match.cover || "";
+            w.year = w.year || match.year || null;
+            w.genre = w.genre || match.genre || "";
+            saveWishlist();
+            if (currentTab === "desideri") renderDesideri();
+          }
+        }
+      } catch (e) { /* ignore */ }
+    });
+  }
+  document.getElementById("desideriView").addEventListener("click", e => {
+    const ownedBtn = e.target.closest("button[data-action='wishlist-owned']");
+    if (ownedBtn) {
+      const w = wishlist.find(x => x.id === ownedBtn.dataset.id);
+      if (w) {
+        const today = new Date().toISOString().slice(0, 10);
+        books.push({
+          id: uid(), title: w.title, author: w.author, year: w.year, genre: w.genre,
+          pages: null, cover: w.cover, isbn: "", description: w.description || "", review: "",
+          rating: 0, status: "da_leggere", currentPage: null, progressPercent: null, dateAdded: today
+        });
+        wishlist = wishlist.filter(x => x.id !== w.id);
+        saveBooks();
+        saveWishlist();
+        renderAll();
+      }
+      return;
+    }
+    const removeBtn = e.target.closest("button[data-action='wishlist-remove']");
+    if (removeBtn) {
+      wishlist = wishlist.filter(x => x.id !== removeBtn.dataset.id);
+      saveWishlist();
+      renderDesideri();
+    }
+  });
 
   // ---------- Libri simili ----------
   let currentSuggestions = [];
@@ -1850,6 +2385,7 @@
       if (book.status === "in_lettura" && !book.dateStart) book.dateStart = today;
       if (book.status === "letto" && !book.dateEnd) book.dateEnd = today;
       saveBooks();
+      recordActivity();
       renderAll();
       renderBookDetailContent(book);
       if (book.status === "letto" && !wasLetto) openQuickReview(book);
@@ -1863,6 +2399,7 @@
       book.currentPage = val;
       if (book.pages) book.progressPercent = Math.round((val / book.pages) * 100);
       saveBooks();
+      recordActivity();
       renderAll();
       renderBookDetailContent(book);
       return;
@@ -1875,6 +2412,7 @@
       book.progressPercent = val;
       if (book.pages) book.currentPage = Math.round((val / 100) * book.pages);
       saveBooks();
+      recordActivity();
       renderAll();
       renderBookDetailContent(book);
     }
@@ -2154,7 +2692,10 @@
     const isSerie = currentTab === "serie";
     const isRecensioni = currentTab === "recensioni";
     const isEsplora = currentTab === "esplora";
-    document.getElementById("grid").style.display = (isStorico || isStats || isGestione || isScaffale || isSerie || isRecensioni || isEsplora) ? "none" : "grid";
+    const isCalendario = currentTab === "calendario";
+    const isCitazioni = currentTab === "citazioni";
+    const isDesideri = currentTab === "desideri";
+    document.getElementById("grid").style.display = (isStorico || isStats || isGestione || isScaffale || isSerie || isRecensioni || isEsplora || isCalendario || isCitazioni || isDesideri) ? "none" : "grid";
     document.getElementById("storicoView").style.display = isStorico ? "block" : "none";
     document.getElementById("statisticheView").style.display = isStats ? "block" : "none";
     document.getElementById("gestioneView").style.display = isGestione ? "block" : "none";
@@ -2162,17 +2703,41 @@
     document.getElementById("serieView").style.display = isSerie ? "block" : "none";
     document.getElementById("recensioniView").style.display = isRecensioni ? "block" : "none";
     document.getElementById("esploraView").style.display = isEsplora ? "block" : "none";
-    document.getElementById("toolbar").style.display = (isStorico || isStats || isEsplora) ? "none" : "flex";
+    document.getElementById("calendarioView").style.display = isCalendario ? "block" : "none";
+    document.getElementById("citazioniView").style.display = isCitazioni ? "block" : "none";
+    document.getElementById("desideriView").style.display = isDesideri ? "block" : "none";
+    document.getElementById("toolbar").style.display = (isStorico || isStats || isEsplora || isCalendario || isDesideri) ? "none" : "flex";
     document.getElementById("emptyState").style.display = "none";
     renderTabContent();
   }
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentTab = btn.dataset.tab;
-      toggleView();
+  // Tab dirette nella barra, più le voci nascoste dentro il menu "Altro ▾"
+  // (Storico, Calendario, Scaffale, Serie, Recensioni, Citazioni, Lista desideri,
+  // Gestione): tenerle in un menu evita che la barra diventi troppo lunga.
+  const MORE_MENU_TABS = ["storico", "calendario", "scaffale", "serie", "recensioni", "citazioni", "desideri", "gestione"];
+  function setActiveTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll(".tab-btn[data-tab]").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+    document.querySelectorAll(".tab-more-item").forEach(item => item.classList.toggle("active", item.dataset.tab === tab));
+    document.getElementById("tabMoreBtn").classList.toggle("active", MORE_MENU_TABS.includes(tab));
+    toggleView();
+  }
+  document.querySelectorAll(".tab-btn[data-tab]").forEach(btn => {
+    btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
+  });
+  document.querySelectorAll(".tab-more-item").forEach(item => {
+    item.addEventListener("click", () => {
+      setActiveTab(item.dataset.tab);
+      document.getElementById("tabMoreMenu").style.display = "none";
     });
+  });
+  document.getElementById("tabMoreBtn").addEventListener("click", e => {
+    e.stopPropagation();
+    const menu = document.getElementById("tabMoreMenu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+  });
+  document.getElementById("tabMoreMenu").addEventListener("click", e => e.stopPropagation());
+  document.addEventListener("click", () => {
+    document.getElementById("tabMoreMenu").style.display = "none";
   });
 
   // ---------- Book modal ----------
@@ -2928,6 +3493,67 @@
     closeQuickReview();
   });
 
+  // ---------- "Cosa leggo dopo?" (libro casuale da "Da leggere") ----------
+  const randomPickOverlay = document.getElementById("randomPickOverlay");
+  let randomPickBookId = null;
+  function pickRandomToRead() {
+    const pool = books.filter(b => b.status === "da_leggere");
+    const content = document.getElementById("randomPickContent");
+    const startBtn = document.getElementById("randomPickStartBtn");
+    const againBtn = document.getElementById("randomPickAgainBtn");
+    if (!pool.length) {
+      randomPickBookId = null;
+      content.innerHTML = '<div class="empty-state">Non hai libri in "Da leggere" al momento: aggiungine qualcuno o esplora nuove idee nella tab Esplora.</div>';
+      startBtn.style.display = "none";
+      againBtn.style.display = "none";
+      randomPickOverlay.classList.add("open");
+      return;
+    }
+    startBtn.style.display = "inline-block";
+    againBtn.style.display = pool.length > 1 ? "inline-block" : "none";
+    const book = pool[Math.floor(Math.random() * pool.length)];
+    randomPickBookId = book.id;
+    const coverStyle = book.cover ? ' style="background-image:url(\'' + escapeAttr(book.cover) + '\')"' : "";
+    const metaParts = [book.year, book.genre, book.pages ? book.pages + " pag." : ""].filter(Boolean);
+    content.innerHTML =
+      '<div data-action="detail" data-id="' + book.id + '" style="display:flex; gap:16px; align-items:center; cursor:pointer;" title="Apri la scheda del libro">' +
+        '<div class="detail-cover"' + coverStyle + ' style="width:80px;height:116px;flex-shrink:0;"></div>' +
+        '<div>' +
+          '<div style="font-weight:600; font-size:1.05rem;">' + escapeHtml(book.title || "Senza titolo") + '</div>' +
+          '<div style="color:var(--muted); margin-top:2px;">' + escapeHtml(book.author || "Autore sconosciuto") + '</div>' +
+          (metaParts.length ? '<div style="font-size:0.8rem;color:var(--muted);margin-top:6px;">' + metaParts.map(escapeHtml).join(" · ") + '</div>' : "") +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:0.72rem;color:var(--muted);margin-top:10px;">Clicca sul libro per aprire la scheda con la trama.</div>';
+    randomPickOverlay.classList.add("open");
+  }
+  document.getElementById("randomPickBtn").addEventListener("click", pickRandomToRead);
+  document.getElementById("randomPickAgainBtn").addEventListener("click", pickRandomToRead);
+  document.getElementById("randomPickCloseBtn").addEventListener("click", () => {
+    randomPickOverlay.classList.remove("open");
+    randomPickBookId = null;
+  });
+  document.getElementById("randomPickContent").addEventListener("click", e => {
+    const el = e.target.closest("[data-action='detail']");
+    if (!el) return;
+    const book = books.find(b => b.id === el.dataset.id);
+    if (!book) return;
+    randomPickOverlay.classList.remove("open");
+    openBookDetail(book);
+  });
+  document.getElementById("randomPickStartBtn").addEventListener("click", () => {
+    const book = books.find(b => b.id === randomPickBookId);
+    if (book) {
+      book.status = "in_lettura";
+      if (!book.dateStart) book.dateStart = new Date().toISOString().slice(0, 10);
+      saveBooks();
+      recordActivity();
+      renderAll();
+    }
+    randomPickOverlay.classList.remove("open");
+    randomPickBookId = null;
+  });
+
   document.getElementById("addBtn").addEventListener("click", () => openBookModal(null));
   document.getElementById("cancelBookBtn").addEventListener("click", closeBookModal);
 
@@ -3005,6 +3631,7 @@
         if (book.status === "in_lettura" && !book.dateStart) book.dateStart = today;
         if (book.status === "letto" && !book.dateEnd) book.dateEnd = today;
         saveBooks();
+        recordActivity();
         renderAll();
         if (justFinished) openQuickReview(book);
       }
@@ -3020,6 +3647,7 @@
         book.currentPage = val;
         if (book.pages) book.progressPercent = Math.round((val / book.pages) * 100);
         saveBooks();
+        recordActivity();
         renderAll();
       }
       return;
@@ -3034,6 +3662,7 @@
         book.progressPercent = val;
         if (book.pages) book.currentPage = Math.round((val / 100) * book.pages);
         saveBooks();
+        recordActivity();
         renderAll();
       }
     }
@@ -3437,6 +4066,7 @@
   });
 
   renderAll();
+  tryReconnectLocalFile();
 })();
 </script>
 </body>
