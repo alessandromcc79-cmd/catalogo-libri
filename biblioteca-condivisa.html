@@ -2,7 +2,10 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#7a4f3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Biblioteca">
 <title>La mia Biblioteca</title>
 <style>
   :root {
@@ -160,7 +163,7 @@
     align-items: center;
     margin-bottom: 18px;
   }
-  .toolbar input[type="text"], .toolbar select {
+  .toolbar input[type="text"], .toolbar input[type="search"], .toolbar select {
     padding: 9px 12px;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -168,7 +171,7 @@
     background: var(--card-bg);
     color: var(--ink);
   }
-  .toolbar input[type="text"] { flex: 1; min-width: 180px; }
+  .toolbar input[type="text"], .toolbar input[type="search"] { flex: 1; min-width: 180px; }
   .spacer { flex: 1; }
 
   button.btn {
@@ -583,7 +586,13 @@
   .auth-switch a { color: var(--accent); cursor: pointer; text-decoration: underline; }
 
   /* Utente loggato nell'header */
-  .user-badge { display: flex; align-items: center; gap: 8px; margin-left: 12px; }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .user-badge {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4);
+    color: #fff; border-radius: 999px; padding: 3px 12px 3px 3px; font: inherit;
+  }
+  .user-badge:hover { background: rgba(255,255,255,0.28); }
   .user-avatar {
     width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
     background: var(--placeholder-bg); border: 1px solid var(--border);
@@ -593,10 +602,53 @@
     font-weight: 600; color: var(--accent); font-size: 0.9rem;
   }
   .user-name { font-size: 0.85rem; font-weight: 600; }
-  .logout-btn {
-    background: none; border: none; color: var(--muted); cursor: pointer;
-    font-size: 0.78rem; text-decoration: underline; padding: 0;
+
+  /* Menu a tendina generici (Strumenti, account) */
+  .menu-wrap { position: relative; display: inline-block; }
+  .menu-panel {
+    position: absolute; top: 100%; margin-top: 6px; z-index: 40; min-width: 230px;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18); overflow: hidden; padding: 4px 0;
   }
+  .menu-panel.menu-right { right: 0; }
+  .menu-panel[hidden] { display: none; }
+  .menu-item {
+    display: block; width: 100%; text-align: left; padding: 10px 14px; font-size: 0.88rem;
+    background: none; border: none; color: var(--ink); cursor: pointer; font-family: inherit;
+  }
+  .menu-item:hover { background: var(--hover-bg); }
+  .menu-item.danger { color: var(--danger); }
+  .menu-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* Notifiche non bloccanti al posto di alert() */
+  .toast-wrap {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 10000;
+    display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none;
+    width: max-content; max-width: calc(100vw - 32px);
+  }
+  .toast {
+    background: var(--ink); color: var(--bg); padding: 11px 16px; border-radius: 10px;
+    font-size: 0.88rem; line-height: 1.45; box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    white-space: pre-line; pointer-events: auto; animation: toast-in 0.18s ease-out;
+  }
+  @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* Pulsante flottante "+" (solo schermi piccoli) */
+  .fab {
+    display: none; position: fixed; right: 18px; bottom: 18px; z-index: 45;
+    width: 58px; height: 58px; border-radius: 50%; border: none;
+    background: var(--accent); color: #fff; font-size: 1.9rem; line-height: 1;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.3); cursor: pointer;
+  }
+
+  /* Copertine come <img loading="lazy">: con centinaia di libri non scarica tutto subito */
+  .cover-img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: inherit; }
+  .has-img { padding: 0 !important; overflow: hidden; }
+  .shelf-cover .cover-img { object-fit: cover; }
+
+  .tab-count { opacity: 0.7; font-size: 0.78em; margin-left: 3px; }
+  #scannerRegion { width: 100%; min-height: 220px; background: #000; border-radius: 10px; overflow: hidden; position: relative; }
+  #scannerRegion video { width: 100%; display: block; }
 
   /* Community */
   .community-card {
@@ -621,6 +673,63 @@
   }
   .community-book-title { font-size: 0.88rem; font-weight: 600; }
   .community-book-author { font-size: 0.78rem; color: var(--muted); }
+
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ---------- Telefono e schermi stretti ---------- */
+  @media (max-width: 700px) {
+    header { padding: 14px 16px; gap: 12px; }
+    header h1 { font-size: 1.2rem; }
+    header .sub { display: none; }
+    .goal-box { order: 3; flex: 1 1 100%; min-width: 0; padding: 8px 12px; }
+    .hide-mobile { display: none; }
+    .theme-toggle-btn { padding: 7px 10px; }
+    .user-name { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    main { padding: 14px 12px 90px; }
+    .stats-row { gap: 8px; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 14px; }
+    .stat-card { min-width: 0; flex: 1 0 auto; padding: 8px 12px; }
+    .stat-card .num { font-size: 1.15rem; }
+
+    .tabs { gap: 5px; }
+    .tab-btn, .tab-more-btn { padding: 7px 11px; font-size: 0.8rem; }
+    .tab-more-menu { position: fixed; top: auto; left: 12px; right: 12px; bottom: 12px; margin: 0; z-index: 60; }
+    .tab-more-item { padding: 13px 16px; font-size: 0.95rem; }
+
+    .toolbar { gap: 8px; }
+    .toolbar input[type="search"], .toolbar input[type="text"] { flex: 1 1 100%; }
+    .toolbar select { flex: 1 1 30%; min-width: 0; }
+    .toolbar .spacer { display: none; }
+    #addBtn { display: none; }
+    .fab { display: block; }
+    .menu-panel { position: fixed; top: auto; left: 12px; right: 12px; bottom: 12px; margin: 0; z-index: 60; }
+    .menu-item { padding: 13px 16px; font-size: 0.95rem; }
+
+    /* niente zoom automatico di iOS sui campi con testo < 16px */
+    input, select, textarea { font-size: 16px !important; }
+
+    .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .cover { height: 190px; }
+    .mini-grid, .suggestion-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+    .mini-cover, .suggestion-cover { height: 132px; }
+
+    .overlay { padding: 0; align-items: flex-end; }
+    .modal { border-radius: 16px 16px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); max-height: 94vh; overflow-y: auto; max-width: none !important; }
+    .modal-actions { flex-wrap: wrap; }
+    .modal-actions .btn { flex: 1 1 auto; }
+    .form-grid { grid-template-columns: 1fr; }
+    .detail-cover { width: 96px; height: 140px; }
+    .detail-header { gap: 14px; }
+    .author-columns { grid-template-columns: 1fr; }
+    .bar-label { width: 84px; }
+    .wrapped-card { padding: 22px 18px; }
+    .wrapped-hero { font-size: 1.6rem; }
+    .review-card { padding: 12px; gap: 12px; }
+    .review-cover { width: 54px; height: 80px; }
+    .manage-table { font-size: 0.8rem; }
+    .manage-table th:nth-child(4), .manage-table td:nth-child(4) { display: none; }
+    .toast-wrap { bottom: 88px; }
+  }
 </style>
 </head>
 <body>
@@ -692,17 +801,19 @@ async function loadUserBooksOnce() {
   return list;
 }
 
-async function saveGoalsRemote(goals) {
+// Campi "piccoli" salvati direttamente nel documento utente (obiettivi, lista
+// desideri, giorni di lettura per il calendario), con merge per non toccare il profilo.
+async function saveUserData(fields) {
   const user = auth.currentUser;
   if (!user) return;
-  try { await setDoc(doc(db, "users", user.uid), { goals }, { merge: true }); } catch (e) { /* ignore */ }
+  try { await setDoc(doc(db, "users", user.uid), fields, { merge: true }); } catch (e) { console.error("Salvataggio dati utente fallito", e); }
 }
-async function loadGoalsOnce() {
+async function loadUserData() {
   const user = auth.currentUser;
   if (!user) return {};
   try {
     const snap = await getDoc(doc(db, "users", user.uid));
-    return (snap.exists() && snap.data().goals) || {};
+    return snap.exists() ? snap.data() : {};
   } catch (e) { return {}; }
 }
 
@@ -717,8 +828,8 @@ async function loadCommunityReading() {
     if (!byUser.has(ownerUid)) byUser.set(ownerUid, []);
     byUser.get(ownerUid).push(d.data());
   });
-  const results = [];
-  for (const [ownerUid, books] of byUser.entries()) {
+  // profili caricati in parallelo, non uno dopo l'altro
+  const results = await Promise.all(Array.from(byUser.entries()).map(async ([ownerUid, books]) => {
     let profile = { displayName: "Utente", photoURL: "" };
     try {
       const pSnap = await getDoc(doc(db, "users", ownerUid));
@@ -727,8 +838,8 @@ async function loadCommunityReading() {
         profile = { displayName: data.displayName || "Utente", photoURL: data.photoURL || "" };
       }
     } catch (e) { /* ignore */ }
-    results.push({ uid: ownerUid, isMe: ownerUid === user.uid, profile, books });
-  }
+    return { uid: ownerUid, isMe: ownerUid === user.uid, profile, books };
+  }));
   results.sort((a, b) => (a.isMe ? -1 : 0) - (b.isMe ? -1 : 0));
   return results;
 }
@@ -771,7 +882,7 @@ async function getMyProfile() {
 
 window.FB = {
   registerUser, loginUser, logoutUser, getMyProfile, deleteMyAccount,
-  syncBooksDelta, loadUserBooksOnce, saveGoals: saveGoalsRemote, loadGoalsOnce,
+  syncBooksDelta, loadUserBooksOnce, saveUserData, loadUserData,
   loadCommunityReading
 };
 
@@ -819,26 +930,31 @@ onAuthStateChanged(auth, (user) => {
     <div class="goal-bar-track"><div class="goal-bar-fill" id="goalBarFill" style="width:0%"></div></div>
     <button class="goal-edit-link" id="editGoalBtn">Imposta obiettivo</button>
   </div>
-  <div class="user-badge">
-    <img class="user-avatar" id="userAvatar" style="display:none;" alt="">
-    <div class="user-avatar user-avatar-placeholder" id="userAvatarPlaceholder">?</div>
-    <div>
-      <div class="user-name" id="userDisplayName">Tu</div>
-      <button class="logout-btn" id="logoutBtn">Esci</button>
-      <button class="logout-btn" id="deleteAccountBtn" style="color:var(--danger); margin-left:8px;">Elimina account</button>
+  <div class="header-actions">
+    <button class="theme-toggle-btn" id="themeToggleBtn" title="Cambia tema chiaro/scuro">🌙</button>
+    <div class="menu-wrap">
+      <button type="button" class="user-badge" data-menu="userMenu" aria-haspopup="true" title="Il tuo account">
+        <img class="user-avatar" id="userAvatar" style="display:none;" alt="">
+        <span class="user-avatar user-avatar-placeholder" id="userAvatarPlaceholder">?</span>
+        <span class="user-name" id="userDisplayName">Tu</span> ▾
+      </button>
+      <div class="menu-panel menu-right" id="userMenu" hidden>
+        <button type="button" class="menu-item" id="logoutBtn">🚪 Esci</button>
+        <div class="menu-sep"></div>
+        <button type="button" class="menu-item danger" id="deleteAccountBtn">Elimina account…</button>
+      </div>
     </div>
   </div>
-  <button class="theme-toggle-btn" id="themeToggleBtn" title="Cambia tema chiaro/scuro">🌙 Scuro</button>
 </header>
 
 <main>
   <div class="stats-row" id="statsRow"></div>
 
   <div class="tabs" id="tabsBar">
-    <button class="tab-btn active" data-tab="all">Tutti</button>
-    <button class="tab-btn" data-tab="da_leggere">Da leggere</button>
-    <button class="tab-btn" data-tab="in_lettura">In lettura</button>
-    <button class="tab-btn" data-tab="letto">Letti</button>
+    <button class="tab-btn active" data-tab="all">Tutti<span class="tab-count" data-count="all"></span></button>
+    <button class="tab-btn" data-tab="da_leggere">Da leggere<span class="tab-count" data-count="da_leggere"></span></button>
+    <button class="tab-btn" data-tab="in_lettura">In lettura<span class="tab-count" data-count="in_lettura"></span></button>
+    <button class="tab-btn" data-tab="letto">Letti<span class="tab-count" data-count="letto"></span></button>
     <button class="tab-btn" data-tab="statistiche">📊 Statistiche</button>
     <button class="tab-btn" data-tab="esplora">🔎 Esplora</button>
     <button class="tab-btn" data-tab="community">🧑‍🤝‍🧑 Community</button>
@@ -858,7 +974,7 @@ onAuthStateChanged(auth, (user) => {
   </div>
 
   <div class="toolbar" id="toolbar">
-    <input type="text" id="searchInput" placeholder="Cerca per titolo o autore...">
+    <input type="search" id="searchInput" placeholder="Cerca per titolo o autore..." enterkeyhint="search">
     <select id="filterGenre"><option value="">Tutti i generi</option></select>
     <select id="filterAuthor"><option value="">Tutti gli autori</option></select>
     <select id="sortBy">
@@ -872,11 +988,20 @@ onAuthStateChanged(auth, (user) => {
     </select>
     <div class="spacer"></div>
     <button class="btn secondary" id="randomPickBtn" title="Pesca un libro a caso da 'Da leggere'">🎲 Cosa leggo dopo?</button>
-    <button class="btn secondary" id="importBtn">Importa da Goodreads</button>
-    <button class="btn secondary" id="syncBtn" title="Cerca online copertine, trame e generi mancanti per tutti i libri">🔄 Sincronizza libri</button>
-    <button class="btn secondary" id="backupBtn">Backup</button>
-    <button class="btn secondary" id="localFileBtn" title="Collega un file sul disco per salvare automaticamente ad ogni modifica (richiede Chrome o Edge)">🔗 Salvataggio file</button>
-    <button class="btn danger" id="clearAllBtn">Svuota libreria</button>
+    <div class="menu-wrap">
+      <button type="button" class="btn secondary" data-menu="toolsMenu" aria-haspopup="true">⚙️ Strumenti ▾</button>
+      <div class="menu-panel menu-right" id="toolsMenu" hidden>
+        <button type="button" class="menu-item" id="importBtn">📥 Importa da Goodreads</button>
+        <button type="button" class="menu-item" id="syncBtn" title="Cerca online copertine, trame e generi mancanti per tutti i libri">🔄 Sincronizza copertine e trame</button>
+        <div class="menu-sep"></div>
+        <button type="button" class="menu-item" id="backupExportBtn">💾 Esporta backup (JSON)</button>
+        <button type="button" class="menu-item" id="backupImportBtn">📂 Ripristina da backup</button>
+        <button type="button" class="menu-item" id="csvExportBtn">📊 Esporta per Excel (CSV)</button>
+        <button type="button" class="menu-item" id="localFileBtn" title="Collega un file sul disco per salvare automaticamente ad ogni modifica (richiede Chrome o Edge)">🔗 Salvataggio file</button>
+        <div class="menu-sep"></div>
+        <button type="button" class="menu-item danger" id="clearAllBtn">🗑️ Svuota libreria…</button>
+      </div>
+    </div>
     <button class="btn" id="addBtn">+ Aggiungi libro</button>
   </div>
 
@@ -897,7 +1022,10 @@ onAuthStateChanged(auth, (user) => {
   <div id="communityView" style="display:none;"></div>
 </main>
 
-<footer>La tua libreria è sincronizzata nel cloud sul tuo account. Usa comunque "Backup" ogni tanto per esportare una copia di sicurezza.</footer>
+<footer>La tua libreria è sincronizzata nel cloud sul tuo account. Ogni tanto usa comunque "Strumenti → Esporta backup" per tenerne una copia.</footer>
+
+<button type="button" class="fab" id="fabAddBtn" aria-label="Aggiungi libro" title="Aggiungi libro">+</button>
+<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
 
 <!-- Modal: Add/Edit Book -->
 <div class="overlay" id="bookOverlay">
@@ -907,8 +1035,9 @@ onAuthStateChanged(auth, (user) => {
       <div class="full isbn-box">
         <label>Aggiungi da ISBN / codice a barre</label>
         <div style="display:flex; gap:6px;">
-          <input type="text" id="f_isbn" placeholder="Es. 9788817150132" inputmode="numeric">
-          <button type="button" class="btn secondary" id="lookupIsbnBtn" style="white-space:nowrap;">Cerca e compila</button>
+          <input type="text" id="f_isbn" placeholder="Es. 9788817150132" inputmode="numeric" style="flex:1; min-width:0;">
+          <button type="button" class="btn secondary" id="scanIsbnBtn" style="white-space:nowrap;" title="Inquadra il codice a barre sul retro del libro">📷<span class="hide-mobile"> Scansiona</span></button>
+          <button type="button" class="btn secondary" id="lookupIsbnBtn" style="white-space:nowrap;">Cerca<span class="hide-mobile"> e compila</span></button>
         </div>
         <div id="isbnLookupStatus" style="font-size:0.78rem; color:var(--muted); margin-top:4px;"></div>
       </div>
@@ -1085,8 +1214,9 @@ onAuthStateChanged(auth, (user) => {
       <div id="similarOnlineResults" style="margin-top:10px;"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" type="button" id="closeDetailBtn">Chiudi</button>
-      <button class="btn danger" type="button" id="deleteFromDetailBtn">🗑️ Elimina libro</button>
+      <button class="btn danger" type="button" id="deleteFromDetailBtn">🗑️ Elimina</button>
+      <button class="btn secondary" type="button" id="editFromDetailBtn">✏️ Modifica</button>
+      <button class="btn" type="button" id="closeDetailBtn">Chiudi</button>
     </div>
   </div>
 </div>
@@ -1218,6 +1348,18 @@ onAuthStateChanged(auth, (user) => {
   </div>
 </div>
 
+<!-- Modal: Scansione codice a barre (ISBN) con la fotocamera -->
+<div class="overlay" id="scanOverlay">
+  <div class="modal" style="max-width:440px;">
+    <h2 style="margin-top:0;">Scansiona il codice a barre</h2>
+    <div id="scannerRegion"></div>
+    <div id="scanStatus" style="font-size:0.8rem; color:var(--muted); margin-top:8px;">Inquadra il codice a barre (EAN/ISBN) sul retro del libro.</div>
+    <div class="modal-actions">
+      <button class="btn secondary" type="button" id="scanCloseBtn">Chiudi</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Import -->
 <div class="overlay" id="importOverlay">
   <div class="modal" style="max-width:640px;">
@@ -1256,6 +1398,9 @@ onAuthStateChanged(auth, (user) => {
   const STORAGE_THEME = "catalogoLibri_theme_v1";
   const STORAGE_WISHLIST = "catalogoLibri_wishlist_v1";
   const STORAGE_ACTIVITY = "catalogoLibri_activity_v1";
+  // uid dell'account a cui appartengono i dati salvati in questo browser: evita che,
+  // cambiando account sullo stesso dispositivo, i libri di uno finiscano nell'altro.
+  const STORAGE_OWNER = "catalogoLibri_owner_v1";
 
   let books = loadBooks();
   let goals = loadGoals();
@@ -1266,13 +1411,44 @@ onAuthStateChanged(auth, (user) => {
   let currentTab = "all";
   let pendingTitleLookup = null;
 
+  // ---------- Piccoli helper comuni ----------
+  // Data locale in formato AAAA-MM-GG. toISOString() usa l'ora UTC: in Italia, tra
+  // mezzanotte e l'1/le 2, darebbe la data del giorno prima.
+  function isoDate(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function todayIso() { return isoDate(new Date()); }
+  function findBook(id) { return books.find(b => b.id === id); }
+  function debounce(fn, ms) {
+    let t = null;
+    return function() { clearTimeout(t); t = setTimeout(fn, ms); };
+  }
+  // Copertina come <img loading="lazy">: il browser la scarica solo quando sta per
+  // comparire sullo schermo, invece di caricare subito tutte quelle della libreria.
+  function coverImg(url) {
+    return url ? '<img class="cover-img" src="' + escapeAttr(url) + '" alt="" loading="lazy" decoding="async">' : "";
+  }
+  // Notifica non bloccante; con ms = 0 resta finché non la si chiude con .remove()
+  function toast(message, ms) {
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = message;
+    document.getElementById("toastWrap").appendChild(el);
+    if (ms !== 0) setTimeout(() => el.remove(), ms || 3500);
+    return el;
+  }
+
   // ---------- Tema chiaro/scuro ----------
   function applyTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
     const btn = document.getElementById("themeToggleBtn");
-    btn.textContent = theme === "dark" ? "☀️ Chiaro" : "🌙 Scuro";
+    btn.innerHTML = theme === "dark" ? '☀️<span class="hide-mobile"> Chiaro</span>' : '🌙<span class="hide-mobile"> Scuro</span>';
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", theme === "dark" ? "#1b1917" : "#7a4f3a");
   }
-  let currentTheme = localStorage.getItem(STORAGE_THEME) || "light";
+  // Senza una scelta salvata, segue il tema del telefono/computer
+  let currentTheme = localStorage.getItem(STORAGE_THEME) ||
+    (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   applyTheme(currentTheme);
   document.getElementById("themeToggleBtn").addEventListener("click", () => {
     currentTheme = currentTheme === "dark" ? "light" : "dark";
@@ -1298,7 +1474,7 @@ onAuthStateChanged(auth, (user) => {
   function saveGoals() {
     localStorage.setItem(STORAGE_GOALS, JSON.stringify(goals));
     writeToLocalFile();
-    if (window.FB) window.FB.saveGoals(goals);
+    if (window.FB) window.FB.saveUserData({ goals });
   }
   function loadWishlist() {
     try {
@@ -1307,6 +1483,7 @@ onAuthStateChanged(auth, (user) => {
   }
   function saveWishlist() {
     localStorage.setItem(STORAGE_WISHLIST, JSON.stringify(wishlist));
+    if (window.FB) window.FB.saveUserData({ wishlist });
   }
   // ---------- Log leggero di attività (per il calendario delle letture) ----------
   // Registra solo la data (una volta per giorno, deduplicato) in cui è stato cambiato
@@ -1319,9 +1496,10 @@ onAuthStateChanged(auth, (user) => {
   }
   function saveActivity() {
     localStorage.setItem(STORAGE_ACTIVITY, JSON.stringify(activityLog));
+    if (window.FB) window.FB.saveUserData({ activity: activityLog });
   }
   function recordActivity() {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayIso();
     if (!activityLog.includes(today)) {
       activityLog.push(today);
       saveActivity();
@@ -1422,7 +1600,7 @@ onAuthStateChanged(auth, (user) => {
           if (granted === "granted") {
             updateLocalFileBtn(localFileHandle.name);
             await writeToLocalFile();
-            alert('Accesso confermato. Salvataggio automatico attivo su "' + localFileHandle.name + '".');
+            toast('Accesso confermato. Salvataggio automatico attivo su "' + localFileHandle.name + '".');
           }
           return;
         }
@@ -1471,7 +1649,7 @@ onAuthStateChanged(auth, (user) => {
       await idbSetHandle(handle);
       updateLocalFileBtn(handle.name);
       await writeToLocalFile();
-      alert('Salvataggio automatico attivo su "' + handle.name + '". Da ora ogni modifica viene scritta anche lì, oltre che nel browser.');
+      toast('Salvataggio automatico attivo su "' + handle.name + '". Da ora ogni modifica viene scritta anche lì.', 5000);
     } catch (e) {
       if (e && e.name !== "AbortError") alert("Non sono riuscito a collegare il file.");
     }
@@ -1512,6 +1690,10 @@ onAuthStateChanged(auth, (user) => {
       statCard(inLettura, "In lettura"),
       statCard(avg, "Valutazione media")
     ].join("");
+    const counts = { all: total, letto: letti, in_lettura: inLettura, da_leggere: books.filter(b => b.status === "da_leggere").length };
+    document.querySelectorAll(".tab-count[data-count]").forEach(el => {
+      el.textContent = total ? String(counts[el.dataset.count]) : "";
+    });
   }
   function statCard(num, label) {
     return '<div class="stat-card"><div class="num">' + num + '</div><div class="label">' + label + '</div></div>';
@@ -1581,22 +1763,27 @@ onAuthStateChanged(auth, (user) => {
     return list;
   }
 
+  // Tab con una vista dedicata: id del contenitore e funzione che lo disegna.
+  // Le tab non elencate (Tutti / Da leggere / In lettura / Letti) usano la griglia.
+  const TAB_VIEWS = {
+    storico: ["storicoView", renderStorico],
+    statistiche: ["statisticheView", renderStatistiche],
+    gestione: ["gestioneView", renderGestione],
+    scaffale: ["scaffaleView", renderScaffale],
+    serie: ["serieView", renderSerie],
+    recensioni: ["recensioniView", renderRecensioni],
+    esplora: ["esploraView", renderEsplora],
+    calendario: ["calendarioView", renderCalendario],
+    citazioni: ["citazioniView", renderCitazioni],
+    desideri: ["desideriView", renderDesideri],
+    community: ["communityView", renderCommunity]
+  };
+  // Tab in cui ricerca/filtri della toolbar non hanno effetto
+  const TABS_WITHOUT_TOOLBAR = new Set(["storico", "statistiche", "esplora", "calendario", "desideri", "community"]);
   function renderTabContent() {
-    if (currentTab === "storico") renderStorico();
-    else if (currentTab === "statistiche") renderStatistiche();
-    else if (currentTab === "gestione") renderGestione();
-    else if (currentTab === "scaffale") renderScaffale();
-    else if (currentTab === "serie") renderSerie();
-    else if (currentTab === "recensioni") renderRecensioni();
-    else if (currentTab === "esplora") renderEsplora();
-    else if (currentTab === "calendario") renderCalendario();
-    else if (currentTab === "citazioni") renderCitazioni();
-    else if (currentTab === "desideri") renderDesideri();
-    else if (currentTab === "community") renderCommunity();
+    const view = TAB_VIEWS[currentTab];
+    if (view) view[1]();
     else renderGrid();
-  }
-  function renderCurrentListView() {
-    renderTabContent();
   }
 
   function renderGrid() {
@@ -1605,7 +1792,7 @@ onAuthStateChanged(auth, (user) => {
     const empty = document.getElementById("emptyState");
     if (list.length === 0) {
       grid.innerHTML = "";
-      empty.style.display = books.length === 0 ? "block" : "block";
+      empty.style.display = "block";
       empty.textContent = books.length === 0
         ? 'Nessun libro ancora. Aggiungine uno o importa la tua libreria da Goodreads.'
         : 'Nessun libro corrisponde ai filtri.';
@@ -1614,11 +1801,10 @@ onAuthStateChanged(auth, (user) => {
     empty.style.display = "none";
 
     grid.innerHTML = list.map(b => {
-      const coverStyleAttr = 'style="cursor:pointer;' + (b.cover ? "background-image:url('" + escapeAttr(b.cover) + "');" : "") + '"';
-      const coverContent = b.cover ? "" : escapeHtml(b.title || "Senza titolo");
+      const coverContent = b.cover ? coverImg(b.cover) : escapeHtml(b.title || "Senza titolo");
       const stars = "★".repeat(b.rating || 0) + "☆".repeat(5 - (b.rating || 0));
       return '<div class="card">' +
-        '<div class="cover" data-action="detail" data-id="' + b.id + '" ' + coverStyleAttr + '>' + (b.cover ? "" : coverContent) + '</div>' +
+        '<div class="cover' + (b.cover ? " has-img" : "") + '" data-action="detail" data-id="' + b.id + '" style="cursor:pointer;">' + coverContent + '</div>' +
         '<div class="card-body">' +
           '<div class="card-title" data-action="detail" data-id="' + b.id + '" style="cursor:pointer;">' + escapeHtml(b.title || "Senza titolo") + '</div>' +
           '<div class="card-author">' + escapeHtml(b.author || "") + (b.year ? " · " + b.year : "") + '</div>' +
@@ -1670,14 +1856,13 @@ onAuthStateChanged(auth, (user) => {
       container.innerHTML = '<div class="empty-state">Nessun libro corrisponde ai filtri.</div>';
       return;
     }
-    container.innerHTML = '<table class="manage-table"><thead><tr>' +
+    container.innerHTML = '<div class="table-scroll"><table class="manage-table"><thead><tr>' +
       '<th></th><th>Titolo</th><th>Autore</th><th>Genere</th><th>Stato</th><th>Voto</th><th></th>' +
       '</tr></thead><tbody>' +
       list.map(b => {
-        const coverStyle = b.cover ? ' style="background-image:url(\'' + escapeAttr(b.cover) + '\')"' : "";
         const stars = b.rating ? "★".repeat(b.rating) : "—";
         return '<tr>' +
-          '<td><div class="manage-cover-thumb"' + coverStyle + '></div></td>' +
+          '<td><div class="manage-cover-thumb' + (b.cover ? " has-img" : "") + '">' + coverImg(b.cover) + '</div></td>' +
           '<td class="manage-title-cell" data-action="detail" data-id="' + b.id + '">' + escapeHtml(b.title || "Senza titolo") + '</td>' +
           '<td>' + escapeHtml(b.author || "—") + '</td>' +
           '<td>' + escapeHtml(b.genre || "—") + '</td>' +
@@ -1686,14 +1871,8 @@ onAuthStateChanged(auth, (user) => {
           '<td><button class="btn secondary" style="padding:5px 12px;font-size:0.78rem;" data-action="edit" data-id="' + b.id + '">Modifica</button></td>' +
         '</tr>';
       }).join("") +
-      '</tbody></table>';
+      '</tbody></table></div>';
   }
-  document.getElementById("gestioneView").addEventListener("click", e => {
-    const editBtn = e.target.closest("button[data-action='edit']");
-    if (editBtn) { const book = books.find(b => b.id === editBtn.dataset.id); if (book) openBookModal(book); return; }
-    const detailEl = e.target.closest("[data-action='detail']");
-    if (detailEl) { const book = books.find(b => b.id === detailEl.dataset.id); if (book) openBookDetail(book); }
-  });
 
   function renderAll() {
     renderGoal();
@@ -1744,7 +1923,7 @@ onAuthStateChanged(auth, (user) => {
     for (let i = 0; i < days.length; i++) {
       const d = days[i];
       const inYear = d.getFullYear() === year;
-      const iso = d.toISOString().slice(0, 10);
+      const iso = isoDate(d);
       const active = inYear && activitySet.has(iso);
       if (active) { activeDaysInYear++; activeDatesInYear.push(iso); }
       cellsHtml += '<div class="cal-cell' + (!inYear ? " empty" : active ? " active" : "") + '" title="' + iso + (active ? " · lettura registrata" : "") + '"></div>';
@@ -1817,32 +1996,19 @@ onAuthStateChanged(auth, (user) => {
       const goalHtml = target > 0
         ? '<div class="year-goal"><div class="goal-bar-track mini"><div class="goal-bar-fill' + (count >= target ? " over" : "") + '" style="width:' + pct + '%"></div></div><span>' + count + ' / ' + target + '</span></div>'
         : "";
-      const cardsHtml = list.map(b => {
-        const coverStyle = b.cover ? ' style="background-image:url(\'' + escapeAttr(b.cover) + '\')"' : "";
-        const coverContent = b.cover ? "" : escapeHtml(b.title || "");
-        return '<div class="mini-card" data-id="' + b.id + '">' +
-          '<div class="mini-cover"' + coverStyle + '>' + (b.cover ? "" : coverContent) + '</div>' +
-          '<div class="mini-title">' + escapeHtml(b.title || "") + '</div>' +
-        '</div>';
-      }).join("");
+      const cardsHtml = list.map(miniCardHtml).join("");
       return '<div class="year-group">' +
         '<div class="year-header"><h3>' + yearLabel + '</h3><div class="year-meta">' + count + ' libri · media ' + avg + ' ★</div>' + goalHtml + '</div>' +
         '<div class="mini-grid">' + cardsHtml + '</div>' +
       '</div>';
     }).join("");
   }
-  document.getElementById("storicoView").addEventListener("click", e => {
-    const card = e.target.closest(".mini-card");
-    if (!card) return;
-    const book = books.find(b => b.id === card.dataset.id);
-    if (book) openBookModal(book);
-  });
-
+  function miniCoverHtml(b) {
+    return '<div class="mini-cover' + (b.cover ? " has-img" : "") + '">' + (b.cover ? coverImg(b.cover) : escapeHtml(b.title || "")) + '</div>';
+  }
   function miniCardHtml(b) {
-    const coverStyle = b.cover ? ' style="background-image:url(\'' + escapeAttr(b.cover) + '\')"' : "";
-    const coverContent = b.cover ? "" : escapeHtml(b.title || "");
     return '<div class="mini-card" data-action="detail" data-id="' + b.id + '">' +
-      '<div class="mini-cover"' + coverStyle + '>' + (b.cover ? "" : coverContent) + '</div>' +
+      miniCoverHtml(b) +
       '<div class="mini-title">' + escapeHtml(b.title || "") + '</div>' +
     '</div>';
   }
@@ -1856,12 +2022,9 @@ onAuthStateChanged(auth, (user) => {
     return SHELF_SPINE_COLORS[hash % SHELF_SPINE_COLORS.length];
   }
   function shelfBookHtml(b) {
-    const coverStyleAttr = 'style="' +
-      (b.cover ? "background-image:url('" + escapeAttr(b.cover) + "');" : "background:" + spineColorFor(b) + ";") +
-      '"';
-    const label = b.cover ? "" : '<span class="shelf-spine-title">' + escapeHtml(truncate(b.title || "", 46)) + '</span>';
+    const inner = b.cover ? coverImg(b.cover) : '<span class="shelf-spine-title">' + escapeHtml(truncate(b.title || "", 46)) + '</span>';
     return '<div class="shelf-book" data-action="detail" data-id="' + b.id + '" title="' + escapeAttr(b.title || "") + '">' +
-      '<div class="shelf-cover" ' + coverStyleAttr + '>' + label + '</div>' +
+      '<div class="shelf-cover' + (b.cover ? " has-img" : "") + '"' + (b.cover ? "" : ' style="background:' + spineColorFor(b) + ';"') + '>' + inner + '</div>' +
     '</div>';
   }
   function renderScaffale() {
@@ -1886,12 +2049,6 @@ onAuthStateChanged(auth, (user) => {
       '</div>';
     }).join("");
   }
-  document.getElementById("scaffaleView").addEventListener("click", e => {
-    const el = e.target.closest("[data-action='detail']");
-    if (!el) return;
-    const book = books.find(b => b.id === el.dataset.id);
-    if (book) openBookDetail(book);
-  });
 
   // ---------- Raggruppamento serie/saga ----------
   // Riconosce il pattern usato da Goodreads: "Titolo (Nome Serie, #N)" alla fine del titolo.
@@ -1919,12 +2076,10 @@ onAuthStateChanged(auth, (user) => {
       const vols = bySeries[name].slice().sort((a, b) => (a._seriesNumber || 0) - (b._seriesNumber || 0));
       const read = vols.filter(b => b.status === "letto").length;
       const cardsHtml = vols.map(b => {
-        const coverStyle = b.cover ? ' style="background-image:url(\'' + escapeAttr(b.cover) + '\')"' : "";
-        const coverContent = b.cover ? "" : escapeHtml(b.title || "");
         const numBadge = b._seriesNumber != null ? '<div class="series-num-badge">#' + b._seriesNumber + '</div>' : "";
         return '<div class="mini-card" data-action="detail" data-id="' + b.id + '" style="position:relative;">' +
           numBadge +
-          '<div class="mini-cover"' + coverStyle + '>' + (b.cover ? "" : coverContent) + '</div>' +
+          miniCoverHtml(b) +
           '<div class="mini-title">' + escapeHtml(b.title || "") + '</div>' +
           '<span class="badge status-' + b.status + '" style="margin-top:3px;">' + statusLabel(b.status) + '</span>' +
         '</div>';
@@ -1935,12 +2090,6 @@ onAuthStateChanged(auth, (user) => {
       '</div>';
     }).join("");
   }
-  document.getElementById("serieView").addEventListener("click", e => {
-    const el = e.target.closest("[data-action='detail']");
-    if (!el) return;
-    const book = books.find(b => b.id === el.dataset.id);
-    if (book) openBookDetail(book);
-  });
 
   // ---------- Recensioni ----------
   function reviewStarsHtml(rating) {
@@ -1959,9 +2108,8 @@ onAuthStateChanged(auth, (user) => {
     }
     list.sort((a, b) => (b.dateEnd || "").localeCompare(a.dateEnd || ""));
     container.innerHTML = '<div class="review-list">' + list.map(b => {
-      const coverStyle = b.cover ? ' style="background-image:url(\'' + escapeAttr(b.cover) + '\')"' : "";
       return '<div class="review-card" data-action="detail" data-id="' + b.id + '">' +
-        '<div class="review-cover"' + coverStyle + '></div>' +
+        '<div class="review-cover' + (b.cover ? " has-img" : "") + '">' + coverImg(b.cover) + '</div>' +
         '<div class="review-body">' +
           '<div class="review-title">' + escapeHtml(b.title || "") + '</div>' +
           '<div class="review-author">' + escapeHtml(b.author || "Autore sconosciuto") + '</div>' +
@@ -1971,12 +2119,6 @@ onAuthStateChanged(auth, (user) => {
       '</div>';
     }).join("") + '</div>';
   }
-  document.getElementById("recensioniView").addEventListener("click", e => {
-    const el = e.target.closest("[data-action='detail']");
-    if (!el) return;
-    const book = books.find(b => b.id === el.dataset.id);
-    if (book) openBookDetail(book);
-  });
 
   // ---------- Esplora: ricerca strutturata online (per titolo, per autore, o entrambi) ----------
   function renderEsplora() {
@@ -2054,7 +2196,7 @@ onAuthStateChanged(auth, (user) => {
     if (!currentCandidate) return;
     const r = currentCandidate;
     const status = document.getElementById("candidateStatus").value;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayIso();
     const newBook = {
       id: uid(),
       title: r.title || "",
@@ -2094,6 +2236,7 @@ onAuthStateChanged(auth, (user) => {
     if (status !== "da_leggere") recordActivity();
     closeCandidateBookSheet();
     renderAll();
+    toast('"' + (newBook.title || "Libro") + '" aggiunto alla libreria.');
     if (status === "letto") openQuickReview(newBook);
   });
   document.getElementById("candidateWishlistBtn").addEventListener("click", () => {
@@ -2108,11 +2251,12 @@ onAuthStateChanged(auth, (user) => {
       genre: r.genre || "",
       cover: r.cover || "",
       description: description.className !== "detail-muted" ? (description.textContent || "") : "",
-      dateAdded: new Date().toISOString().slice(0, 10)
+      dateAdded: todayIso()
     });
     saveWishlist();
     closeCandidateBookSheet();
     renderAll();
+    toast('"' + (r.title || "Libro") + '" aggiunto alla lista desideri.');
   });
   // Disegna una griglia di risultati (usata sia per la ricerca manuale sia per i
   // consigli di lettura automatici) con un titoletto opzionale sopra. Cliccando sulla
@@ -2122,10 +2266,8 @@ onAuthStateChanged(auth, (user) => {
       (showBackLink ? '<div style="margin-bottom:10px;"><a href="#" id="esploraBackToSuggestions" style="font-size:0.8rem;">← Torna ai consigli di lettura</a></div>' : '') +
       (headingText ? '<div style="font-size:0.85rem;color:var(--muted);margin-bottom:10px;">' + escapeHtml(headingText) + '</div>' : '') +
       '<div class="mini-grid">' + results.map((r, idx) => {
-        const coverStyle = r.cover ? ' style="background-image:url(\'' + escapeAttr(r.cover) + '\')"' : "";
-        const coverContent = r.cover ? "" : escapeHtml(r.title || "");
         return '<div class="mini-card" data-idx="' + idx + '" style="cursor:pointer;">' +
-          '<div class="mini-cover"' + coverStyle + '>' + coverContent + '</div>' +
+          miniCoverHtml(r) +
           '<div class="mini-title">' + escapeHtml(r.title || "") + '</div>' +
           (r.author ? '<div style="font-size:0.7rem;color:var(--muted);">' + escapeHtml(r.author) + '</div>' : '') +
           '<button type="button" class="btn secondary" data-action="esplora-add" data-idx="' + idx + '" style="margin-top:6px;font-size:0.72rem;padding:4px 8px;width:100%;">+ Aggiungi</button>' +
@@ -2336,14 +2478,14 @@ onAuthStateChanged(auth, (user) => {
     const book = books.find(b => b.id === currentDetailBookId);
     if (!book) return;
     const text = document.getElementById("detailQuoteText").value.trim();
-    if (!text) { alert("Scrivi il testo della citazione prima di salvarla."); return; }
+    if (!text) { toast("Scrivi il testo della citazione prima di salvarla."); return; }
     const pageVal = parseInt(document.getElementById("detailQuotePage").value, 10);
     if (!book.quotes) book.quotes = [];
     book.quotes.push({
       id: uid(),
       text: text,
       page: isNaN(pageVal) ? null : pageVal,
-      dateAdded: new Date().toISOString().slice(0, 10)
+      dateAdded: todayIso()
     });
     saveBooks();
     document.getElementById("detailQuoteText").value = "";
@@ -2384,12 +2526,6 @@ onAuthStateChanged(auth, (user) => {
       '</div>';
     }).join("");
   }
-  document.getElementById("citazioniView").addEventListener("click", e => {
-    const el = e.target.closest("[data-action='detail']");
-    if (!el) return;
-    const book = books.find(b => b.id === el.dataset.id);
-    if (book) openBookDetail(book);
-  });
 
   // ---------- Lista desideri ----------
   // Libri che non possiedi ancora, tenuti volutamente separati dalla libreria vera e
@@ -2409,10 +2545,8 @@ onAuthStateChanged(auth, (user) => {
     const list = wishlist.slice().sort((a, b) => (b.dateAdded || "").localeCompare(a.dateAdded || ""));
     const listHtml = list.length
       ? '<div class="mini-grid">' + list.map(w => {
-          const coverStyle = w.cover ? ' style="background-image:url(\'' + escapeAttr(w.cover) + '\')"' : "";
-          const coverContent = w.cover ? "" : escapeHtml(w.title || "");
           return '<div class="mini-card" data-id="' + w.id + '">' +
-            '<div class="mini-cover"' + coverStyle + '>' + coverContent + '</div>' +
+            miniCoverHtml(w) +
             '<div class="mini-title">' + escapeHtml(w.title || "") + '</div>' +
             (w.author ? '<div style="font-size:0.7rem;color:var(--muted);">' + escapeHtml(w.author) + '</div>' : '') +
             '<div style="display:flex; gap:4px; margin-top:6px;">' +
@@ -2429,7 +2563,7 @@ onAuthStateChanged(auth, (user) => {
       if (!title) { alert("Inserisci almeno il titolo."); return; }
       const item = {
         id: uid(), title, author, year: null, genre: "", cover: "", description: "",
-        dateAdded: new Date().toISOString().slice(0, 10)
+        dateAdded: todayIso()
       };
       wishlist.push(item);
       saveWishlist();
@@ -2456,7 +2590,7 @@ onAuthStateChanged(auth, (user) => {
     if (ownedBtn) {
       const w = wishlist.find(x => x.id === ownedBtn.dataset.id);
       if (w) {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = todayIso();
         books.push({
           id: uid(), title: w.title, author: w.author, year: w.year, genre: w.genre,
           pages: null, cover: w.cover, isbn: "", description: w.description || "", review: "",
@@ -2618,6 +2752,12 @@ onAuthStateChanged(auth, (user) => {
     detailOverlay.classList.add("open");
   }
   document.getElementById("closeDetailBtn").addEventListener("click", () => detailOverlay.classList.remove("open"));
+  document.getElementById("editFromDetailBtn").addEventListener("click", () => {
+    const book = findBook(currentDetailBookId);
+    if (!book) return;
+    detailOverlay.classList.remove("open");
+    openBookModal(book);
+  });
   document.getElementById("deleteFromDetailBtn").addEventListener("click", () => {
     const book = books.find(b => b.id === currentDetailBookId);
     if (!book) return;
@@ -2630,48 +2770,41 @@ onAuthStateChanged(auth, (user) => {
   // Cambio rapido di stato e progresso direttamente dalla scheda dettaglio (stessa
   // logica già usata nelle card della griglia, incluso il prompt di recensione quando
   // si segna un libro come Letto).
-  detailOverlay.addEventListener("change", e => {
-    const book = books.find(b => b.id === currentDetailBookId);
-    if (!book) return;
-    const statusEl = e.target.closest("#detailStatusSelect");
-    if (statusEl) {
-      const wasLetto = book.status === "letto";
-      book.status = statusEl.value;
-      const today = new Date().toISOString().slice(0, 10);
-      if (book.status === "in_lettura" && !book.dateStart) book.dateStart = today;
-      if (book.status === "letto" && !book.dateEnd) book.dateEnd = today;
+  // Cambio di stato o di progresso: stessa logica per le card della griglia e per la
+  // scheda dettaglio. Restituisce true se l'evento è stato gestito.
+  function handleStatusOrProgressChange(target, book) {
+    if (target.matches("select[data-action='status'], #detailStatusSelect")) {
+      const justFinished = book.status !== "letto" && target.value === "letto";
+      book.status = target.value;
+      if (book.status === "in_lettura" && !book.dateStart) book.dateStart = todayIso();
+      if (book.status === "letto" && !book.dateEnd) book.dateEnd = todayIso();
       saveBooks();
       recordActivity();
       renderAll();
-      renderBookDetailContent(book);
-      if (book.status === "letto" && !wasLetto) openQuickReview(book);
-      return;
+      if (justFinished) openQuickReview(book);
+      return true;
     }
-    const pagesEl = e.target.closest("input[data-action='progress-pages']");
-    if (pagesEl) {
-      let val = parseInt(pagesEl.value, 10);
-      if (isNaN(val) || val < 0) val = 0;
+    const action = target.dataset.action;
+    if (action !== "progress-pages" && action !== "progress-percent") return false;
+    let val = parseInt(target.value, 10);
+    if (isNaN(val) || val < 0) val = 0;
+    if (action === "progress-pages") {
       if (book.pages && val > book.pages) val = book.pages;
       book.currentPage = val;
       if (book.pages) book.progressPercent = Math.round((val / book.pages) * 100);
-      saveBooks();
-      recordActivity();
-      renderAll();
-      renderBookDetailContent(book);
-      return;
-    }
-    const percentEl = e.target.closest("input[data-action='progress-percent']");
-    if (percentEl) {
-      let val = parseInt(percentEl.value, 10);
-      if (isNaN(val) || val < 0) val = 0;
+    } else {
       if (val > 100) val = 100;
       book.progressPercent = val;
       if (book.pages) book.currentPage = Math.round((val / 100) * book.pages);
-      saveBooks();
-      recordActivity();
-      renderAll();
-      renderBookDetailContent(book);
     }
+    saveBooks();
+    recordActivity();
+    renderAll();
+    return true;
+  }
+  detailOverlay.addEventListener("change", e => {
+    const book = findBook(currentDetailBookId);
+    if (book && handleStatusOrProgressChange(e.target, book)) renderBookDetailContent(book);
   });
   document.getElementById("detailAuthor").addEventListener("click", () => {
     const book = books.find(b => b.id === currentDetailBookId);
@@ -2980,30 +3113,11 @@ onAuthStateChanged(auth, (user) => {
 
   // ---------- Tabs ----------
   function toggleView() {
-    const isStorico = currentTab === "storico";
-    const isStats = currentTab === "statistiche";
-    const isGestione = currentTab === "gestione";
-    const isScaffale = currentTab === "scaffale";
-    const isSerie = currentTab === "serie";
-    const isRecensioni = currentTab === "recensioni";
-    const isEsplora = currentTab === "esplora";
-    const isCalendario = currentTab === "calendario";
-    const isCitazioni = currentTab === "citazioni";
-    const isDesideri = currentTab === "desideri";
-    const isCommunity = currentTab === "community";
-    document.getElementById("grid").style.display = (isStorico || isStats || isGestione || isScaffale || isSerie || isRecensioni || isEsplora || isCalendario || isCitazioni || isDesideri || isCommunity) ? "none" : "grid";
-    document.getElementById("storicoView").style.display = isStorico ? "block" : "none";
-    document.getElementById("statisticheView").style.display = isStats ? "block" : "none";
-    document.getElementById("gestioneView").style.display = isGestione ? "block" : "none";
-    document.getElementById("scaffaleView").style.display = isScaffale ? "block" : "none";
-    document.getElementById("serieView").style.display = isSerie ? "block" : "none";
-    document.getElementById("recensioniView").style.display = isRecensioni ? "block" : "none";
-    document.getElementById("esploraView").style.display = isEsplora ? "block" : "none";
-    document.getElementById("calendarioView").style.display = isCalendario ? "block" : "none";
-    document.getElementById("citazioniView").style.display = isCitazioni ? "block" : "none";
-    document.getElementById("desideriView").style.display = isDesideri ? "block" : "none";
-    document.getElementById("communityView").style.display = isCommunity ? "block" : "none";
-    document.getElementById("toolbar").style.display = (isStorico || isStats || isEsplora || isCalendario || isDesideri || isCommunity) ? "none" : "flex";
+    document.getElementById("grid").style.display = TAB_VIEWS[currentTab] ? "none" : "grid";
+    Object.keys(TAB_VIEWS).forEach(tab => {
+      document.getElementById(TAB_VIEWS[tab][0]).style.display = tab === currentTab ? "block" : "none";
+    });
+    document.getElementById("toolbar").style.display = TABS_WITHOUT_TOOLBAR.has(currentTab) ? "none" : "flex";
     document.getElementById("emptyState").style.display = "none";
     renderTabContent();
   }
@@ -3030,7 +3144,9 @@ onAuthStateChanged(auth, (user) => {
   document.getElementById("tabMoreBtn").addEventListener("click", e => {
     e.stopPropagation();
     const menu = document.getElementById("tabMoreMenu");
-    menu.style.display = menu.style.display === "block" ? "none" : "block";
+    const wasOpen = menu.style.display === "block";
+    document.querySelectorAll(".menu-panel").forEach(m => { m.hidden = true; });
+    menu.style.display = wasOpen ? "none" : "block";
   });
   document.getElementById("tabMoreMenu").addEventListener("click", e => e.stopPropagation());
   document.addEventListener("click", () => {
@@ -3053,7 +3169,7 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById("f_currentPercent").value = book ? book.progressPercent || "" : "";
     document.getElementById("f_dateStart").value = book ? book.dateStart || "" : "";
     document.getElementById("f_dateEnd").value = book ? book.dateEnd || "" : "";
-    document.getElementById("f_dateAdded").value = book ? book.dateAdded || "" : new Date().toISOString().slice(0, 10);
+    document.getElementById("f_dateAdded").value = book ? book.dateAdded || "" : todayIso();
     document.getElementById("f_description").value = book ? book.description || "" : "";
     document.getElementById("f_cover").value = book ? book.cover || "" : "";
     document.getElementById("f_review").value = book ? book.review || "" : "";
@@ -3894,7 +4010,7 @@ onAuthStateChanged(auth, (user) => {
     const book = books.find(b => b.id === randomPickBookId);
     if (book) {
       book.status = "in_lettura";
-      if (!book.dateStart) book.dateStart = new Date().toISOString().slice(0, 10);
+      if (!book.dateStart) book.dateStart = todayIso();
       saveBooks();
       recordActivity();
       renderAll();
@@ -3908,7 +4024,7 @@ onAuthStateChanged(auth, (user) => {
 
   document.getElementById("saveBookBtn").addEventListener("click", () => {
     const title = document.getElementById("f_title").value.trim();
-    if (!title) { alert("Il titolo è obbligatorio."); return; }
+    if (!title) { toast("Il titolo è obbligatorio."); document.getElementById("f_title").focus(); return; }
     const pagesTotal = parseInt(document.getElementById("f_pages").value, 10) || null;
     const pagesRaw = parseInt(document.getElementById("f_currentPage").value, 10);
     const percentRaw = parseInt(document.getElementById("f_currentPercent").value, 10);
@@ -3944,7 +4060,7 @@ onAuthStateChanged(auth, (user) => {
       if (idx >= 0) books[idx] = Object.assign({}, books[idx], data);
     } else {
       data.id = uid();
-      if (!data.dateAdded) data.dateAdded = new Date().toISOString().slice(0, 10);
+      if (!data.dateAdded) data.dateAdded = todayIso();
       books.push(data);
     }
     saveBooks();
@@ -3961,66 +4077,27 @@ onAuthStateChanged(auth, (user) => {
     renderAll();
   });
 
-  document.getElementById("grid").addEventListener("click", e => {
-    const btn = e.target.closest("button[data-action='edit']");
-    if (btn) { const book = books.find(b => b.id === btn.dataset.id); if (book) openBookModal(book); return; }
-    const detailEl = e.target.closest("[data-action='detail']");
-    if (detailEl) { const book = books.find(b => b.id === detailEl.dataset.id); if (book) openBookDetail(book); }
+  // Un solo gestore per tutte le viste della pagina principale (griglia, scaffale,
+  // serie, storico, recensioni, citazioni, gestione...): click su un libro = scheda
+  // dettaglio, pulsante "Modifica" = modulo di modifica.
+  document.querySelector("main").addEventListener("click", e => {
+    const editBtn = e.target.closest("button[data-action='edit']");
+    if (editBtn) { const book = findBook(editBtn.dataset.id); if (book) openBookModal(book); return; }
+    const detailEl = e.target.closest("[data-action='detail'][data-id]");
+    if (detailEl) { const book = findBook(detailEl.dataset.id); if (book) openBookDetail(book); }
   });
 
   // Cambio rapido di stato e aggiornamento del progresso di lettura direttamente dalla card
   document.getElementById("grid").addEventListener("change", e => {
-    const statusEl = e.target.closest("select[data-action='status']");
-    if (statusEl) {
-      const book = books.find(b => b.id === statusEl.dataset.id);
-      if (book) {
-        const justFinished = book.status !== "letto" && statusEl.value === "letto";
-        book.status = statusEl.value;
-        const today = new Date().toISOString().slice(0, 10);
-        if (book.status === "in_lettura" && !book.dateStart) book.dateStart = today;
-        if (book.status === "letto" && !book.dateEnd) book.dateEnd = today;
-        saveBooks();
-        recordActivity();
-        renderAll();
-        if (justFinished) openQuickReview(book);
-      }
-      return;
-    }
-    const pagesEl = e.target.closest("input[data-action='progress-pages']");
-    if (pagesEl) {
-      const book = books.find(b => b.id === pagesEl.dataset.id);
-      if (book) {
-        let val = parseInt(pagesEl.value, 10);
-        if (isNaN(val) || val < 0) val = 0;
-        if (book.pages && val > book.pages) val = book.pages;
-        book.currentPage = val;
-        if (book.pages) book.progressPercent = Math.round((val / book.pages) * 100);
-        saveBooks();
-        recordActivity();
-        renderAll();
-      }
-      return;
-    }
-    const percentEl = e.target.closest("input[data-action='progress-percent']");
-    if (percentEl) {
-      const book = books.find(b => b.id === percentEl.dataset.id);
-      if (book) {
-        let val = parseInt(percentEl.value, 10);
-        if (isNaN(val) || val < 0) val = 0;
-        if (val > 100) val = 100;
-        book.progressPercent = val;
-        if (book.pages) book.currentPage = Math.round((val / 100) * book.pages);
-        saveBooks();
-        recordActivity();
-        renderAll();
-      }
-    }
+    const book = findBook(e.target.dataset.id);
+    if (book) handleStatusOrProgressChange(e.target, book);
   });
 
   // ---------- Filters ----------
-  ["searchInput", "filterGenre", "filterAuthor", "sortBy"].forEach(id => {
-    document.getElementById(id).addEventListener("input", renderCurrentListView);
-    document.getElementById(id).addEventListener("change", renderCurrentListView);
+  // La ricerca aspetta una breve pausa nella digitazione prima di ridisegnare
+  document.getElementById("searchInput").addEventListener("input", debounce(renderTabContent, 180));
+  ["filterGenre", "filterAuthor", "sortBy"].forEach(id => {
+    document.getElementById(id).addEventListener("change", renderTabContent);
   });
 
   // ---------- Goal modal ----------
@@ -4124,7 +4201,7 @@ onAuthStateChanged(auth, (user) => {
       cover: "",
       isbn,
       review: row["My Review"] || "",
-      dateAdded: normalizeDate(row["Date Added"]) || new Date().toISOString().slice(0, 10)
+      dateAdded: normalizeDate(row["Date Added"]) || todayIso()
     };
   }
 
@@ -4199,7 +4276,7 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById("importText").value = "";
     document.getElementById("importFile").value = "";
     renderAll();
-    alert(summary);
+    toast(summary, 6000);
   });
 
   // ---------- Recupero massivo copertine mancanti ----------
@@ -4283,7 +4360,7 @@ onAuthStateChanged(auth, (user) => {
   // basandosi solo su ricerche online (Open Library, Google Books, Wikipedia).
   document.getElementById("syncBtn").addEventListener("click", async () => {
     const btn = document.getElementById("syncBtn");
-    const originalText = btn.textContent;
+    if (btn.disabled) return;
 
     const coverTargets = books.filter(b => !b.cover || OLD_UNRELIABLE_COVER_PATTERN.test(b.cover));
     const coverTargetIds = new Set(coverTargets.map(b => b.id));
@@ -4293,7 +4370,7 @@ onAuthStateChanged(auth, (user) => {
     const genreOnlyTargets = books.filter(b => !b.genre && b.title && !coverTargetIds.has(b.id));
 
     if (!coverTargets.length && !descTargets.length && !genreOnlyTargets.length) {
-      alert("Libreria già sincronizzata: copertine, trame e generi sono già tutti presenti.");
+      toast("Libreria già sincronizzata: copertine, trame e generi sono già tutti presenti.");
       return;
     }
 
@@ -4308,10 +4385,12 @@ onAuthStateChanged(auth, (user) => {
     if (!ok) return;
 
     btn.disabled = true;
+    // il pulsante è dentro il menu Strumenti (chiuso): l'avanzamento va in una notifica
+    const progress = toast("Sincronizzazione in corso...", 0);
 
     let coversFound = 0, coversCleared = 0, genresFromCovers = 0;
     for (let i = 0; i < coverTargets.length; i++) {
-      btn.textContent = "Copertine... (" + (i + 1) + "/" + coverTargets.length + ")";
+      progress.textContent = "🔄 Copertine… " + (i + 1) + "/" + coverTargets.length;
       const wasUnreliable = OLD_UNRELIABLE_COVER_PATTERN.test(coverTargets[i].cover);
       const result = await findCoverForBook(coverTargets[i]);
       if (result.cover) {
@@ -4327,13 +4406,13 @@ onAuthStateChanged(auth, (user) => {
         genresFromCovers++;
       }
       saveBooks();
-      renderAll();
+      if (i % 5 === 4 || i === coverTargets.length - 1) renderAll(); // ridisegna ogni tanto, non a ogni libro
       await sleep(150);
     }
 
     let genresFoundOnline = genresFromCovers;
     for (let i = 0; i < genreOnlyTargets.length; i++) {
-      btn.textContent = "Generi... (" + (i + 1) + "/" + genreOnlyTargets.length + ")";
+      progress.textContent = "🔄 Generi… " + (i + 1) + "/" + genreOnlyTargets.length;
       try {
         const genre = await findGenreForBook(genreOnlyTargets[i]);
         if (genre) { genreOnlyTargets[i].genre = genre; genresFoundOnline++; saveBooks(); }
@@ -4344,7 +4423,7 @@ onAuthStateChanged(auth, (user) => {
 
     let descFoundOnline = 0;
     for (let i = 0; i < descTargets.length; i++) {
-      btn.textContent = "Trame... (" + (i + 1) + "/" + descTargets.length + ")";
+      progress.textContent = "🔄 Trame… " + (i + 1) + "/" + descTargets.length;
       try {
         const desc = await fetchDescriptionByTitleAuthor(descTargets[i].title, descTargets[i].author);
         if (desc) { descTargets[i].description = desc; descFoundOnline++; saveBooks(); }
@@ -4354,7 +4433,7 @@ onAuthStateChanged(auth, (user) => {
     renderAll();
 
     btn.disabled = false;
-    btn.textContent = originalText;
+    progress.remove();
     alert(
       "Sincronizzazione completata.\n" +
       (coverTargets.length ? "• " + coversFound + "/" + coverTargets.length + " copertine trovate online" +
@@ -4376,42 +4455,226 @@ onAuthStateChanged(auth, (user) => {
     books = [];
     saveBooks();
     renderAll();
-    alert("Libreria svuotata.");
+    toast("Libreria svuotata.");
   });
 
-  // ---------- Backup / restore ----------
-  document.getElementById("backupBtn").addEventListener("click", () => {
-    const choice = confirm("OK = Esporta backup JSON.  Annulla = Importa un backup JSON.");
-    if (choice) {
-      const data = JSON.stringify({ books, goals }, null, 2);
-      const blob = new Blob([data], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "backup-biblioteca-" + new Date().toISOString().slice(0, 10) + ".json";
-      a.click();
-      URL.revokeObjectURL(url);
-    } else {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = ".json";
-      input.onchange = e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-          try {
-            const data = JSON.parse(ev.target.result);
-            if (data.books) { books = data.books; saveBooks(); }
-            if (data.goals) { goals = data.goals; saveGoals(); }
-            renderAll();
-            alert("Backup ripristinato.");
-          } catch (err) { alert("File non valido."); }
-        };
-        reader.readAsText(file);
+  // ---------- Backup / restore / esportazione CSV ----------
+  function downloadFile(filename, content, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  document.getElementById("backupExportBtn").addEventListener("click", () => {
+    const data = JSON.stringify({ books, goals, wishlist, activity: activityLog }, null, 2);
+    downloadFile("backup-biblioteca-" + todayIso() + ".json", data, "application/json");
+    toast("Backup scaricato: " + books.length + " libri.");
+  });
+  document.getElementById("backupImportBtn").addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json,application/json";
+    input.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        let data;
+        try { data = JSON.parse(ev.target.result); } catch (err) { alert("File non valido."); return; }
+        if (!data || !Array.isArray(data.books)) { alert("Questo file non sembra un backup della biblioteca."); return; }
+        if (!confirm("Ripristinare il backup con " + data.books.length + " libri?\nSostituisce la libreria attuale (" + books.length + " libri).")) return;
+        books = data.books; saveBooks();
+        if (data.goals) { goals = data.goals; saveGoals(); }
+        if (Array.isArray(data.wishlist)) { wishlist = data.wishlist; saveWishlist(); }
+        if (Array.isArray(data.activity)) { activityLog = data.activity; saveActivity(); }
+        renderAll();
+        toast("Backup ripristinato.");
       };
-      input.click();
+      reader.readAsText(file);
+    };
+    input.click();
+  });
+  // CSV con ";" e BOM UTF-8: è il formato che Excel in italiano apre direttamente
+  // con colonne e lettere accentate corrette.
+  document.getElementById("csvExportBtn").addEventListener("click", () => {
+    if (!books.length) { toast("La libreria è vuota: niente da esportare."); return; }
+    const columns = [
+      ["Titolo", b => b.title], ["Autore", b => b.author], ["Anno", b => b.year],
+      ["Genere", b => b.genre], ["Pagine", b => b.pages], ["Stato", b => statusLabel(b.status)],
+      ["Valutazione", b => b.rating || ""], ["Data inizio", b => b.dateStart], ["Data fine", b => b.dateEnd],
+      ["Data aggiunta", b => b.dateAdded], ["ISBN", b => b.isbn], ["Recensione", b => b.review]
+    ];
+    const cell = v => {
+      const str = v == null ? "" : String(v);
+      return /[";\n\r]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
+    };
+    const lines = [columns.map(c => c[0]).join(";")].concat(
+      books.map(b => columns.map(c => cell(c[1](b))).join(";"))
+    );
+    downloadFile("biblioteca-" + todayIso() + ".csv", "\ufeff" + lines.join("\r\n"), "text/csv;charset=utf-8");
+    toast("Esportati " + books.length + " libri in CSV.");
+  });
+
+  // ---------- Menu a tendina (Strumenti, account) ----------
+  function closeAllMenus() {
+    document.querySelectorAll(".menu-panel").forEach(m => { m.hidden = true; });
+    document.getElementById("tabMoreMenu").style.display = "none";
+  }
+  document.querySelectorAll("[data-menu]").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const menu = document.getElementById(btn.dataset.menu);
+      const wasHidden = menu.hidden;
+      closeAllMenus();
+      menu.hidden = !wasHidden;
+    });
+  });
+  // una voce scelta chiude il menu (l'azione è gestita dal suo listener)
+  document.querySelectorAll(".menu-panel").forEach(menu => {
+    menu.addEventListener("click", e => { if (e.target.closest(".menu-item")) menu.hidden = true; });
+  });
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".menu-wrap")) document.querySelectorAll(".menu-panel").forEach(m => { m.hidden = true; });
+  });
+
+  document.getElementById("fabAddBtn").addEventListener("click", () => openBookModal(null));
+
+  // ---------- Chiusura dei popup con Esc o toccando fuori ----------
+  // Il modulo Aggiungi/Modifica libro resta escluso: chiuderlo per sbaglio farebbe
+  // perdere quello che si stava scrivendo.
+  const OVERLAY_CLOSERS = {
+    candidateOverlay: () => closeCandidateBookSheet(),
+    quickReviewOverlay: () => closeQuickReview(),
+    scanOverlay: () => closeScanner()
+  };
+  function closeOverlay(overlay) {
+    if (OVERLAY_CLOSERS[overlay.id]) OVERLAY_CLOSERS[overlay.id]();
+    else overlay.classList.remove("open");
+  }
+  document.querySelectorAll(".overlay").forEach(overlay => {
+    if (overlay.id === "bookOverlay") return;
+    overlay.addEventListener("click", e => { if (e.target === overlay) closeOverlay(overlay); });
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    closeAllMenus();
+    const open = Array.from(document.querySelectorAll(".overlay.open")).filter(o => o.id !== "bookOverlay");
+    if (open.length) closeOverlay(open[open.length - 1]);
+  });
+
+  // ---------- Scansione del codice a barre (ISBN) con la fotocamera ----------
+  // Usa il riconoscimento integrato nel browser (BarcodeDetector, Chrome/Android) e,
+  // dove non c'è (es. iPhone), carica al primo uso la libreria html5-qrcode.
+  const scanOverlay = document.getElementById("scanOverlay");
+  let scanStream = null, scanTimer = null, scanLib = null;
+  function isbnFromBarcode(code) {
+    const digits = digitsOnly(code);
+    // gli ISBN-13 iniziano con 978/979; un ISBN-10 può finire con X
+    if (/^97[89]\d{10}$/.test(digits) || /^\d{9}[\dXx]$/.test(digits)) return digits;
+    return null;
+  }
+  function onBarcodeFound(code) {
+    const isbn = isbnFromBarcode(code);
+    if (!isbn) {
+      document.getElementById("scanStatus").textContent = "Letto " + code + ", ma non sembra un ISBN: inquadra il codice che inizia con 978 o 979.";
+      return false;
     }
+    closeScanner();
+    document.getElementById("f_isbn").value = isbn;
+    if (navigator.vibrate) navigator.vibrate(80);
+    document.getElementById("lookupIsbnBtn").click();
+    return true;
+  }
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+  async function startNativeScanner(region) {
+    const formats = await window.BarcodeDetector.getSupportedFormats();
+    if (!formats.includes("ean_13")) throw new Error("ean_13 non supportato");
+    const detector = new window.BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a"] });
+    scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+    const video = document.createElement("video");
+    video.setAttribute("playsinline", "");
+    video.muted = true;
+    video.srcObject = scanStream;
+    region.innerHTML = "";
+    region.appendChild(video);
+    await video.play();
+    const tick = async () => {
+      if (!scanStream) return;
+      try {
+        const codes = await detector.detect(video);
+        if (codes.length && onBarcodeFound(codes[0].rawValue)) return;
+      } catch (e) { /* frame non ancora pronto */ }
+      scanTimer = setTimeout(tick, 250);
+    };
+    tick();
+  }
+  async function startLibraryScanner() {
+    if (!window.Html5Qrcode) await loadScript("https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js");
+    const F = window.Html5QrcodeSupportedFormats;
+    scanLib = new window.Html5Qrcode("scannerRegion", { formatsToSupport: [F.EAN_13, F.EAN_8, F.UPC_A], verbose: false });
+    await scanLib.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: (w, h) => ({ width: Math.floor(w * 0.85), height: Math.floor(Math.min(h, w) * 0.45) }) },
+      code => { onBarcodeFound(code); },
+      () => { /* nessun codice in questo fotogramma */ }
+    );
+  }
+  async function openScanner() {
+    const region = document.getElementById("scannerRegion");
+    const statusEl = document.getElementById("scanStatus");
+    region.innerHTML = "";
+    statusEl.textContent = "Avvio della fotocamera…";
+    scanOverlay.classList.add("open");
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      statusEl.textContent = "La fotocamera non è disponibile in questo browser (serve una pagina https). Scrivi l'ISBN a mano.";
+      return;
+    }
+    try {
+      let started = false;
+      if ("BarcodeDetector" in window) {
+        try { await startNativeScanner(region); started = true; } catch (e) { stopScanStream(); }
+      }
+      if (!started) await startLibraryScanner();
+      if (scanOverlay.classList.contains("open")) statusEl.textContent = "Inquadra il codice a barre (EAN/ISBN) sul retro del libro.";
+      else closeScanner(); // chiuso mentre la fotocamera si avviava
+    } catch (e) {
+      const denied = e && (e.name === "NotAllowedError" || /permission/i.test(String(e)));
+      statusEl.textContent = denied
+        ? "Permesso fotocamera negato. Abilitalo nelle impostazioni del browser oppure scrivi l'ISBN a mano."
+        : "Non riesco ad avviare la fotocamera. Scrivi l'ISBN a mano.";
+    }
+  }
+  function stopScanStream() {
+    clearTimeout(scanTimer);
+    if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+  }
+  function closeScanner() {
+    scanOverlay.classList.remove("open");
+    stopScanStream();
+    if (scanLib) {
+      const lib = scanLib;
+      scanLib = null;
+      lib.stop().catch(() => {}).then(() => { try { lib.clear(); } catch (e) { /* ignore */ } });
+    }
+    document.getElementById("scannerRegion").innerHTML = "";
+  }
+  document.getElementById("scanIsbnBtn").addEventListener("click", openScanner);
+  document.getElementById("scanCloseBtn").addEventListener("click", closeScanner);
+  document.getElementById("f_isbn").addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); document.getElementById("lookupIsbnBtn").click(); }
   });
 
   // ---------- Autenticazione (login/registrazione con account condiviso) ----------
@@ -4517,13 +4780,22 @@ onAuthStateChanged(auth, (user) => {
     const profile = await window.FB.getMyProfile();
     updateUserBadge(profile);
 
+    // I dati in questo browser appartengono a un altro account (es. cambio utente sullo
+    // stesso dispositivo): non vanno mostrati né caricati sul cloud di questo account.
+    const previousOwner = localStorage.getItem(STORAGE_OWNER);
+    if (previousOwner && previousOwner !== user.uid) {
+      books = []; goals = {}; wishlist = []; activityLog = [];
+      [STORAGE_BOOKS, STORAGE_GOALS, STORAGE_WISHLIST, STORAGE_ACTIVITY].forEach(k => localStorage.removeItem(k));
+    }
+    localStorage.setItem(STORAGE_OWNER, user.uid);
+
     // La prima volta che un dispositivo si collega, la fonte di verità diventa Firestore;
     // se invece Firestore è ancora vuoto ma qui in locale ci sono già dati (prima
     // registrazione da questo stesso dispositivo), li carichiamo noi su Firestore.
     try {
-      const [remoteBooks, remoteGoals] = await Promise.all([
+      const [remoteBooks, remoteData] = await Promise.all([
         window.FB.loadUserBooksOnce(),
-        window.FB.loadGoalsOnce()
+        window.FB.loadUserData()
       ]);
       if (remoteBooks.length > 0) {
         books = remoteBooks;
@@ -4531,12 +4803,28 @@ onAuthStateChanged(auth, (user) => {
       } else if (books.length > 0) {
         window.FB.syncBooksDelta(books);
       }
-      if (remoteGoals && Object.keys(remoteGoals).length > 0) {
-        goals = remoteGoals;
+      const toUpload = {};
+      if (remoteData.goals && Object.keys(remoteData.goals).length > 0) {
+        goals = remoteData.goals;
         localStorage.setItem(STORAGE_GOALS, JSON.stringify(goals));
-      } else if (goals && Object.keys(goals).length > 0) {
-        window.FB.saveGoals(goals);
+      } else if (Object.keys(goals).length > 0) {
+        toUpload.goals = goals;
       }
+      if (Array.isArray(remoteData.wishlist) && remoteData.wishlist.length > 0) {
+        wishlist = remoteData.wishlist;
+        localStorage.setItem(STORAGE_WISHLIST, JSON.stringify(wishlist));
+      } else if (wishlist.length > 0) {
+        toUpload.wishlist = wishlist;
+      }
+      // giorni di lettura: unione di quelli registrati qui e di quelli nel cloud
+      const remoteActivity = Array.isArray(remoteData.activity) ? remoteData.activity : [];
+      const mergedActivity = Array.from(new Set(remoteActivity.concat(activityLog))).sort();
+      if (mergedActivity.length !== activityLog.length) {
+        activityLog = mergedActivity;
+        localStorage.setItem(STORAGE_ACTIVITY, JSON.stringify(activityLog));
+      }
+      if (mergedActivity.length !== remoteActivity.length) toUpload.activity = activityLog;
+      if (Object.keys(toUpload).length) window.FB.saveUserData(toUpload);
     } catch (e) { /* resta la copia locale se il cloud non è raggiungibile */ }
 
     if (!appStarted) {
